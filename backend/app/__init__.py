@@ -9,6 +9,7 @@ from .extensions import flask_keycloak, db, ma, api, cors, migrate
 from .commands import enable_postgis
 from .health.health_api import health_ns
 from .listings.listing_api import listing_ns
+from .onboarding.onboarding_api import onboarding_ns
 from . import model  # noqa: F401  registers models for migrations
 
 
@@ -60,6 +61,7 @@ def create_app(config_file="setting.py", config_overrides=None):
     # Register API namespaces
     api.add_namespace(health_ns)
     api.add_namespace(listing_ns)
+    api.add_namespace(onboarding_ns)
 
     @app.teardown_request
     def teardown_request(exception=None):

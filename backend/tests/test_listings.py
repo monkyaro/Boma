@@ -50,3 +50,22 @@ def test_create_and_fetch(client, token_claims, app):
     assert client.get(f"/listings/{body['listing_id']}").status_code == 200
     rs = client.get("/listings?region=Dar es Salaam")
     assert rs.get_json()["total"] == 1
+
+
+def test_legacy_agent_cannot_create(client, token_claims):
+    token_claims["realm_access"]["roles"] = ["agent"]
+    assert client.post("/listings", json=NEW_LISTING,
+                       headers={"Authorization": "Bearer test"}).status_code == 403
+
+
+def test_public_listing_excludes_private_fields(client, token_claims, app):
+    response = client.post("/listings", json=NEW_LISTING,
+                           headers={"Authorization": "Bearer test"})
+    listing_id = response.get_json()["listing_id"]
+    with app.app_context():
+        Listing.get_by_id(listing_id).status = "published"
+        db.session.commit()
+    detail = client.get(f"/listings/{listing_id}").get_json()
+    collection = client.get("/listings").get_json()["items"]
+    for item in [detail, *collection]:
+        assert not {"owner_id", "latitude", "longitude", "location"} & item.keys()

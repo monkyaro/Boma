@@ -15,13 +15,19 @@ def app():
     app, _ = create_app("setting.py", {"TESTING": True})
 
     with app.app_context():
+        if _db.engine.url.database != "boma_test":
+            raise RuntimeError("Destructive test fixtures require the disposable boma_test database")
         _db.session.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
         _db.session.commit()
         _db.drop_all()
+        _db.session.execute(text("DROP TABLE IF EXISTS alembic_version"))
+        _db.session.commit()
         _db.create_all()
         yield app
         _db.session.remove()
         _db.drop_all()
+        _db.session.execute(text("DROP TABLE IF EXISTS alembic_version"))
+        _db.session.commit()
 
 
 @pytest.fixture(scope="function")
@@ -34,8 +40,8 @@ def token_claims(monkeypatch):
     """Bypass JWKS verification: any bearer token decodes to these claims."""
     claims = {
         "sub": "00000000-0000-0000-0000-000000000001",
-        "preferred_username": "agent1",
-        "realm_access": {"roles": ["agent"]},
+        "preferred_username": "owner1",
+        "realm_access": {"roles": ["owner"]},
     }
     monkeypatch.setattr(flask_keycloak, "decode", lambda token: claims)
     return claims

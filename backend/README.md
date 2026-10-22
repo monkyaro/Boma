@@ -37,7 +37,7 @@ pip install -r requirements-dev.txt && python -m pytest
 2. Import the model in `app/model.py`, register the namespace in `app/__init__.py`
 3. `flask --app run db migrate -m "..."`, review the file, commit it
 
-Protect endpoints with `@flask_keycloak.require_token`, then `@flask_keycloak.check_realm_access("agent")`.
+Protect endpoints with `@flask_keycloak.require_token`, then `@flask_keycloak.check_realm_access("owner")`.
 The caller is in `g.user` / `g.token`.
 
 ## CI/CD
@@ -48,3 +48,11 @@ on `main` it builds a `linux/arm64` image, scans it with Trivy and pushes it to 
 
 The container runs as a non-root user, applies migrations on start, and serves gunicorn on port 8000.
 Never commit `.env` files or keys.
+
+## Owner onboarding foundation
+
+`POST /onboarding/owner-identity` (empty JSON body) and `GET /onboarding/owner-identity`
+require a bearer token and operate only on the caller's initial identity case.
+Submission is idempotent and does not grant a role. No staff approval or document
+upload endpoints are enabled yet. See [local API examples](../docs/local-development.md).
+Public listing DTOs omit owner IDs and precise coordinates; only owner tokens create drafts.

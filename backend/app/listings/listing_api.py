@@ -21,7 +21,8 @@ add_listing = listing_ns.model('Add New Listing', {
 })
 
 listing_schema = ListingSchema()
-listings_schema = ListingSchema(many=True)
+public_listing_schema = ListingSchema(exclude=("owner_id",))
+listings_schema = ListingSchema(many=True, exclude=("owner_id",))
 
 
 @listing_ns.route("")
@@ -39,7 +40,7 @@ class Listings(Resource):
 
     @listing_ns.expect(add_listing)
     @flask_keycloak.require_token
-    @flask_keycloak.check_realm_access("agent", "owner")
+    @flask_keycloak.check_realm_access("owner")
     def post(self):
         try:
             data = listing_schema.load(listing_ns.payload or {})
@@ -62,4 +63,4 @@ class ListingDetail(Resource):
         rs = Listing.get_by_id(listing_id)
         if rs is None or rs.status != "published":
             return {"message": "Listing not found"}, 404
-        return listing_schema.dump(rs), 200
+        return public_listing_schema.dump(rs), 200
