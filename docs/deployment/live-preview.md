@@ -52,3 +52,10 @@ The Terraform additions describe only the three secret containers and exact host
 For application failure, stop only this release's Compose services, retain its files/images/volumes and preserve current DNS. This was a first deployment, so there is no previous working application release to switch to. Do not downgrade schemas or delete database/secret records automatically. The retained pre-release snapshot is the recovery point; any restore into another RDS instance needs a separately approved resource/cost plan. Keep the snapshot through owner validation.
 
 Incremental spend remains within the approved low-usage allowance: three secrets, snapshot retention and minor image/log/API usage, with existing EC2/RDS unchanged. Actual bills vary with traffic/storage/burst credits; the estimate is not a spending cap.
+
+## Web redesign release — 2026-10-22
+
+- Web only: `boma/web:4c473a30aa2c` (commit `4c473a3`, branch `feat/frontend-redesign`). API, Keycloak, database and nginx unchanged (API still `1d93d01e6616`).
+- Built natively on the host with `NEXT_PUBLIC_DEPLOYMENT_PREVIEW=true` from `/opt/boma/releases/4c473a30aa2c/source`; Trivy HIGH/CRITICAL fixable gate passed (`web-scan.log`). The image is local to the host and was not pushed to ECR.
+- Switched by setting `WEB_TAG` in `/opt/boma/current/.env` and recreating only the `web` service; health check, nginx probe and public HTTPS checks passed.
+- Rollback: `cp /opt/boma/current/.env.bak-before-web-4c473a30aa2c /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps web` (restores web `1d93d01e6616`).
