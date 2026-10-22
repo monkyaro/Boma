@@ -7,6 +7,12 @@ export default function Header() {
   const { ready, user, login, logout, hasRole } = useAuth();
 
   return (
+    <>
+    {process.env.NEXT_PUBLIC_DEPLOYMENT_PREVIEW === "true" && (
+      <div role="status" className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950">
+        BOMA preview · Registration and live transactions are not open yet.
+      </div>
+    )}
     <header className="border-b border-black/10 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="text-xl font-black tracking-widest text-brand">
@@ -32,5 +38,6 @@ export default function Header() {
         </nav>
       </div>
     </header>
+    </>
   );
 }

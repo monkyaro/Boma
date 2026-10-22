@@ -12,10 +12,12 @@ ARG NEXT_PUBLIC_API_URL=https://api.bomahoop.com
 ARG NEXT_PUBLIC_KEYCLOAK_URL=https://auth.bomahoop.com
 ARG NEXT_PUBLIC_KEYCLOAK_REALM=boma
 ARG NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=boma-web
+ARG NEXT_PUBLIC_DEPLOYMENT_PREVIEW=false
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_KEYCLOAK_URL=$NEXT_PUBLIC_KEYCLOAK_URL \
     NEXT_PUBLIC_KEYCLOAK_REALM=$NEXT_PUBLIC_KEYCLOAK_REALM \
     NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=$NEXT_PUBLIC_KEYCLOAK_CLIENT_ID \
+    NEXT_PUBLIC_DEPLOYMENT_PREVIEW=$NEXT_PUBLIC_DEPLOYMENT_PREVIEW \
     NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -30,6 +32,8 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
+# The standalone server needs Node only; omit unused npm and its dependency tree.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://127.0.0.1:3000/healthz || exit 1

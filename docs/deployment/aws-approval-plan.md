@@ -1,6 +1,6 @@
 # AWS initial deployment approval plan
 
-Prepared 2026-10-22T11:47:06.696450+00:00. Status: **awaiting owner approval; no remote mutations performed**.
+Prepared 2026-10-22T11:47:06.696450+00:00. Status: **owner approved in chat (“yes”); temporary deployment-role access still pending**. Native release preparation is authorized; no database/IAM/secret mutations have been performed.
 
 ## Confirmed read-only discovery
 
@@ -57,3 +57,10 @@ Price references: https://aws.amazon.com/ec2/pricing/on-demand/ ; https://aws.am
 ## Approval required
 
 Approve the existing-resource preview scope, up to $6/month initial incremental allowance, snapshot/schema bootstrap, the three secret resources and scoped host-role permission changes, TLS issuance, and native source-build release exception. Also identify the authorized temporary AWS role/Identity Center session mechanism (profile or role ARN, never credentials in chat). This approval does not approve a public business launch, live payments, DNS changes or provisioning additional compute/databases.
+
+
+## Post-approval preparation
+
+The source archive was staged under `/opt/boma/releases/84f842dc26bc`; its SHA256 matched the local archive. Native API and web images were built. Trivy v0.76 identified no gated findings in the API image and three fixable HIGH findings in unused global npm dependencies in the web runtime (`brace-expansion` and `undici`). A release hardening change removes unused npm from the standalone runtime and adds the required visible preview banner; re-run web checks/native scan before release. The application behavior change is limited to preview labeling; payment/registration restrictions remain enabled.
+
+Only the existing EC2 service role was found, with EC2-only trust. No BOMA temporary workstation deployment role/Identity Center profile is currently available. Do not bootstrap IAM through long-lived user credentials or grant the host role self-escalation. Owner was asked to configure a temporary deployment session while build/test preparation continues.

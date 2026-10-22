@@ -17,3 +17,5 @@ override.tf.json
 *.pem
 !.env.example
 !backend/.env.test
+
+**/__pycache__/
