@@ -1,0 +1,33 @@
+name: ci
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+            # keycloakify packages the theme with Maven
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 21
+            - run: npm ci
+            - run: npm audit --omit=dev --audit-level=high
+            - run: npm run build-keycloak-theme
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: boma-keycloak-theme
+                  path: dist_keycloak/*.jar
