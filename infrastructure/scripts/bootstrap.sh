@@ -39,7 +39,7 @@ MaxAuthTries 3
 LoginGraceTime 30
 X11Forwarding no
 EOF
-# Admin user: no password (key-only), passwordless sudo like the default ubuntu user
+# Admin user: no password (key-only), passwordless sudo (replaces the AMI default ubuntu user)
 id boma >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --groups sudo boma
 echo "boma ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-boma
 chmod 440 /etc/sudoers.d/90-boma
@@ -96,7 +96,6 @@ cat > /etc/docker/daemon.json <<'EOF'
 EOF
 systemctl enable docker
 systemctl restart docker
-usermod -aG docker ubuntu
 usermod -aG docker boma
 
 # --- AWS CLI v2 (arm64)
@@ -125,6 +124,10 @@ EOF
   -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
 
 # --- App directory
-install -d -o ubuntu -g ubuntu /opt/boma
+install -d -o boma -g boma /opt/boma
+
+# --- Remove the AMI default user; boma is the only login user
+userdel --remove ubuntu 2>/dev/null || true
+rm -f /etc/sudoers.d/90-cloud-init-users
 
 echo "BOMA bootstrap complete"
