@@ -31,5 +31,7 @@ Requires the `boma-hoop` AWS CLI profile. Never commit `*.tfvars`, `.env` files 
 ### Layout
 
 - `infrastructure/terraform/modules/` – network, security, iam, ec2, rds, s3, ecr, dns, monitoring
-- `infrastructure/scripts/bootstrap.sh` – EC2 user data (Docker, CloudWatch agent, ufw, chrony, auto-updates; SSH disabled, admin via SSM)
-- `infrastructure/docker/`, `infrastructure/docs/` – next stage
+- `infrastructure/scripts/bootstrap.sh` – EC2 user data (Docker, CloudWatch agent, ufw, chrony, auto-updates; key-only SSH for `boma`, SSM)
+- `infrastructure/scripts/` – `init-params.sh` (SSM config/secrets), `db-init.sh` (DB roles, PostGIS), `deploy.sh` (deploy + rollback), `backup.sh`, `restore.sh`, `enable-ssh.sh`
+- `infrastructure/docker/` – production Compose stack (nginx + Let's Encrypt, web, api, Celery, Keycloak, Redis) and `render-env.sh`
+- `infrastructure/docs/` – [architecture](infrastructure/docs/architecture.md), [deployment](infrastructure/docs/deployment.md), [security](infrastructure/docs/security.md), [cost estimate](infrastructure/docs/cost-estimate.md), [disaster recovery](infrastructure/docs/disaster-recovery.md)

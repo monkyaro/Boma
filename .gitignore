@@ -12,6 +12,8 @@ override.tf.json
 !example.tfvars
 .env
 .env.*
+*.env
+*.env.new
 *.pem
 !.env.example
 !backend/.env.test
