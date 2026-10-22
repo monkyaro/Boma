@@ -61,18 +61,21 @@ class Geography(Resource):
     def post(self):
         if "national_admin" not in roles():
             abort(403, "National administrator required")
-        data = payload({"kind": choice(["region", "district", "ward"]), "code": string(32),
+        data = payload({"kind": choice(["region", "district", "ward"]), "code": string(32, False),
                         "name": string(100), "parent_code": string(32, False)})
         kind = data.pop("kind")
         parent = data.pop("parent_code", None)
-        model = {"region": Region, "district": District, "ward": Ward}[kind]
-        if db.session.get(model, data["code"]):
-            abort(409, "Geography code already exists")
+        model = GEOGRAPHY_MODELS[kind]
         if kind != "region":
             parent_model = Region if kind == "district" else District
-            if not parent or not db.session.get(parent_model, parent):
+            # Locking the parent serializes code generation for its children
+            if not parent or not db.session.get(parent_model, parent, with_for_update=True):
                 abort(400, "Valid parent required")
-            data["region_code" if kind == "district" else "district_code"] = parent
+            data[GEOGRAPHY_PARENT[kind]] = parent
+        if not data.get("code"):
+            data["code"] = next_geography_code(kind, parent)
+        if db.session.get(model, data["code"]):
+            abort(409, "Geography code already exists")
         if model.query.filter_by(**{key: value for key, value in data.items() if key != "code"}).first():
             abort(409, "Geography name already exists in parent")
         row = model(**data)
@@ -80,6 +83,51 @@ class Geography(Resource):
         audit("geography.create", data["code"], kind=kind)
         db.session.commit()
         return {"code": row.code}, 201
+
+
+GEOGRAPHY_MODELS = {"region": Region, "district": District, "ward": Ward}
+GEOGRAPHY_PARENT = {"district": "region_code", "ward": "district_code"}
+
+
+def next_geography_code(kind, parent):
+    """Next sequential code: regions 01, 02…; districts <region>01…; wards <district>01…"""
+    model = GEOGRAPHY_MODELS[kind]
+    query = db.session.query(model.code)
+    prefix = parent or ""
+    if kind != "region":
+        query = query.filter(getattr(model, GEOGRAPHY_PARENT[kind]) == parent)
+    numbers = [int(code[len(prefix):]) for (code,) in query.all()
+               if code.startswith(prefix) and code[len(prefix):].isdigit()]
+    return prefix + str(max(numbers, default=0) + 1).zfill(2)
+
+
+@workspace_ns.route("/geography/<string:kind>/<string:code>")
+class GeographyEntry(Resource):
+    @staff_only
+    def patch(self, kind, code):
+        if "national_admin" not in roles():
+            abort(403, "National administrator required")
+        model = GEOGRAPHY_MODELS.get(kind)
+        if model is None:
+            abort(404, "Unknown geography level")
+        row = db.session.get(model, code, with_for_update=True)
+        if row is None:
+            abort(404, "Geography entry not found")
+        name = payload({"name": string(100)})["name"]
+        siblings = model.query.filter(model.name == name, model.code != code)
+        if kind != "region":
+            siblings = siblings.filter(getattr(model, GEOGRAPHY_PARENT[kind]) == getattr(row, GEOGRAPHY_PARENT[kind]))
+        if siblings.first():
+            abort(409, "Geography name already exists in parent")
+        previous, row.name = row.name, name
+        # Listings keep the region/district name for display; keep them in step
+        if kind == "region":
+            Listing.query.filter_by(region_code=code).update({"region": name})
+        elif kind == "district":
+            Listing.query.filter_by(district_code=code).update({"district": name})
+        audit("geography.rename", code, kind=kind, previous=previous, name=name)
+        db.session.commit()
+        return {"code": row.code, "name": row.name}
 
 
 @workspace_ns.route("/assignments")

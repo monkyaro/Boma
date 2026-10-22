@@ -33,7 +33,8 @@ JSON requests; bearer tokens for all writes and private reads. Anonymous reads r
 - `GET /workspace/assignments`; supervisor `POST` with `{officer_id,region_code,district_code?,ward_code?}`. `PATCH /workspace/assignments/{id}` with `{available?,active?}`: own availability or scoped supervisor control. Assignment/reassignment is audited. Target must independently hold an authorized Keycloak staff role.
 - Supervisor `POST /workspace/changes/{id}/decision` with `{version,decision:"approve"|"reject"|"withdraw",title?,description?}`; approved content changes reset property verification for re-review.
 - `GET /workspace/reports`: scoped listing counts. National administrator `GET /workspace/audit`: immutable history. No audit mutation endpoint; DB triggers also deny update/delete/truncate.
-- National administrator `POST /workspace/geography`: `{kind:"region"|"district"|"ward",code,name,parent_code?}`. Import only from an approved source.
+- National administrator `POST /workspace/geography`: `{kind:"region"|"district"|"ward",name,parent_code?,code?}`. Import only from an approved source. Districts require a region `parent_code`, wards a district. When `code` is omitted it is generated sequentially: regions `01`, `02`…; districts `<region code>01`…; wards `<district code>01`…. Returns `201 {code}`; duplicate code or name within the parent `409`.
+- National administrator `PATCH /workspace/geography/<kind>/<code>`: `{name}` renames an entry (codes never change). Region and district renames also update the display names stored on listings. Audited as `geography.rename`; unknown entry `404`, duplicate name within the parent `409`.
 
 ## Deals and owner-paid commissions
 

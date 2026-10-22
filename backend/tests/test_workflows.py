@@ -417,3 +417,42 @@ def test_owner_cannot_publish_direct_contact_in_listing_text(client, token_claim
     actor(token_claims, owner_id, "owner")
     for text_value in ("Call +255712345678", "Email owner@example.test", "See https://example.test", "Position -6.7224, 39.2145"):
         assert client.patch(f"/listings/{listing_id}", json={"version": 1, "description": text_value}, headers=HEADERS).status_code == 400
+
+
+def test_geography_codes_are_generated_under_parent(client, token_claims):
+    actor(token_claims, "national-admin", "national_admin")
+    created = client.post("/workspace/geography", json={"kind": "region", "name": "Generated region " + uuid.uuid4().hex[:8]}, headers=HEADERS)
+    assert created.status_code == 201
+    region = created.json["code"]
+    assert region.isdigit()
+    assert client.post("/workspace/geography", json={"kind": "district", "name": "No parent"}, headers=HEADERS).status_code == 400
+    first = client.post("/workspace/geography", json={"kind": "district", "name": "First", "parent_code": region}, headers=HEADERS)
+    second = client.post("/workspace/geography", json={"kind": "district", "name": "Second", "parent_code": region}, headers=HEADERS)
+    assert (first.json["code"], second.json["code"]) == (region + "01", region + "02")
+    ward = client.post("/workspace/geography", json={"kind": "ward", "name": "Ward", "parent_code": first.json["code"]}, headers=HEADERS)
+    assert ward.json["code"] == region + "0101"
+    duplicate = client.post("/workspace/geography", json={"kind": "district", "name": "First", "parent_code": region}, headers=HEADERS)
+    assert duplicate.status_code == 409
+    actor(token_claims, "officer-test", "officer")
+    assert client.post("/workspace/geography", json={"kind": "region", "name": "Officer region"}, headers=HEADERS).status_code == 403
+
+
+def test_geography_rename_updates_listing_names(client, token_claims, property_row, geography):
+    region, district, _, _ = geography
+    listing_id = property_row.listing_id
+    url = f"/workspace/geography/region/{region}"
+    actor(token_claims, "officer-test", "officer")
+    assert client.patch(url, json={"name": "Renamed"}, headers=HEADERS).status_code == 403
+    actor(token_claims, "national-admin", "national_admin")
+    assert client.patch(f"/workspace/geography/region/missing-{region}", json={"name": "Renamed"}, headers=HEADERS).status_code == 404
+    taken = Region.query.filter(Region.code != region).first().name
+    assert client.patch(url, json={"name": taken}, headers=HEADERS).status_code == 409
+    new_name = "Renamed region " + region
+    response = client.patch(url, json={"name": new_name}, headers=HEADERS)
+    assert response.status_code == 200
+    assert response.json == {"code": region, "name": new_name}
+    assert client.patch(f"/workspace/geography/district/{district}", json={"name": "Renamed district"}, headers=HEADERS).status_code == 200
+    db.session.expire_all()
+    listing = db.session.get(Listing, listing_id)
+    assert (listing.region, listing.district) == (new_name, "Renamed district")
+    assert AuditEvent.query.filter_by(action="geography.rename", target_id=region).count() == 1

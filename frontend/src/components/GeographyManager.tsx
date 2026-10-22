@@ -1,13 +1,56 @@
 "use client";
 
-import { useState } from "react";
-import ActionForm from "./ActionForm";
+import { useState, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import api from "@/services/apiClient";
+import ActionForm, { errorText } from "./ActionForm";
+import { nextGeographyCode } from "@/lib/geography";
 import type { Geography } from "@/types/workspace";
 
 type Level = "region" | "district" | "ward";
 const LEVELS: [Level, string][] = [["region", "Regions"], ["district", "Districts"], ["ward", "Wards"]];
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+function EditableRow({ level, code, name, detail }: { level: Level; code: string; name: string; detail: string }) {
+  const cache = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = String(new FormData(event.currentTarget).get("name") || "").trim();
+    if (!value || value === name) { setEditing(false); return; }
+    setBusy(true);
+    setError("");
+    try {
+      await api.patch(`/workspace/geography/${level}/${encodeURIComponent(code)}`, { name: value });
+      await cache.invalidateQueries();
+      setEditing(false);
+    } catch (failure) { setError(errorText(failure)); }
+    finally { setBusy(false); }
+  }
+  return (
+    <tr className="hover:bg-brand-light/40">
+      <td className="px-4 py-2.5 font-mono text-xs">{code}</td>
+      <td className="px-4 py-2.5 font-medium">
+        {editing ? (
+          <form onSubmit={save} className="flex flex-wrap items-center gap-2">
+            <input name="name" defaultValue={name} required maxLength={100} autoFocus aria-label={`New name for ${code}`}
+              className="min-w-0 flex-1 rounded-lg border border-black/15 px-2.5 py-1.5 text-sm font-normal outline-none focus:border-brand focus:ring-4 focus:ring-brand/10" />
+            <button disabled={busy} className="button px-3 py-1.5">{busy ? "Saving…" : "Save"}</button>
+            <button type="button" className="button ghost px-3 py-1.5" onClick={() => { setEditing(false); setError(""); }}>Cancel</button>
+            {error && <p role="alert" className="w-full text-xs font-normal text-red-700">{error}</p>}
+          </form>
+        ) : name}
+      </td>
+      <td className="px-4 py-2.5 text-black/55">{detail}</td>
+      <td className="px-4 py-2.5 text-right">
+        {!editing && <button type="button" className="text-sm font-semibold text-brand hover:underline" onClick={() => setEditing(true)} aria-label={`Edit ${name}`}>Edit</button>}
+      </td>
+    </tr>
+  );
+}
 
 /** National admin tool: add regions, then districts under a region, then wards under a district */
 export default function GeographyManager({ geography }: { geography?: Geography }) {
@@ -32,6 +75,8 @@ export default function GeographyManager({ geography }: { geography?: Geography 
   const query = filter.trim().toLowerCase();
   const shown = query ? rows.filter((x) => `${x.code} ${x.name}`.toLowerCase().includes(query)) : rows;
   const noun = level === "region" ? "region" : level === "district" ? "district" : "ward";
+  const siblings = level === "region" ? regions.map((x) => x.code) : level === "district" ? regionDistricts.map((x) => x.code) : wards.filter((x) => x.district_code === districtCode).map((x) => x.code);
+  const nextCode = nextGeographyCode(siblings, parent);
 
   return (
     <section className="panel">
@@ -70,13 +115,19 @@ export default function GeographyManager({ geography }: { geography?: Geography 
               {level === "district" ? "Choose the region this district belongs to." : "Choose the region and district this ward belongs to."}
             </p>
           ) : (
+            <>
+            <p className="rounded-xl bg-surface px-4 py-3 text-sm text-black/60">
+              New code <span className="ml-1 font-mono font-semibold text-ink">{nextCode}</span>
+              <span className="block text-xs text-black/45">Assigned automatically when you save.</span>
+            </p>
             <ActionForm
               key={`${level}-${parent}`}
               path="/workspace/geography"
               fixed={{ kind: level, ...(parent ? { parent_code: parent } : {}) }}
-              fields={[{ name: "code", label: `Official ${noun} code` }, { name: "name", label: `Official ${noun} name` }]}
+              fields={[{ name: "name", label: `Official ${noun} name` }]}
               label={`Add ${noun}${parent ? ` to ${level === "district" ? regionName(parent) : districtName(parent)}` : ""}`}
             />
+            </>
           )}
         </div>
 
@@ -92,17 +143,11 @@ export default function GeographyManager({ geography }: { geography?: Geography 
           <div className="max-h-80 overflow-auto rounded-xl border border-black/[0.06]">
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-surface text-xs uppercase tracking-wider text-black/50">
-                <tr><th className="px-4 py-2.5 font-semibold">Code</th><th className="px-4 py-2.5 font-semibold">Name</th><th className="px-4 py-2.5 font-semibold">{level === "region" ? "Districts" : level === "district" ? "Region" : "District"}</th></tr>
+                <tr><th className="px-4 py-2.5 font-semibold">Code</th><th className="px-4 py-2.5 font-semibold">Name</th><th className="px-4 py-2.5 font-semibold">{level === "region" ? "Districts" : level === "district" ? "Region" : "District"}</th><th className="px-4 py-2.5"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody className="divide-y divide-black/[0.06]">
-                {shown.map((row) => (
-                  <tr key={row.code} className="hover:bg-brand-light/40">
-                    <td className="px-4 py-2.5 font-mono text-xs">{row.code}</td>
-                    <td className="px-4 py-2.5 font-medium">{row.name}</td>
-                    <td className="px-4 py-2.5 text-black/55">{row.detail}</td>
-                  </tr>
-                ))}
-                {!shown.length && <tr><td colSpan={3} className="px-4 py-8 text-center text-black/45">{level === "ward" && !regionCode ? "Select a region and district." : `No ${noun}s yet.`}</td></tr>}
+                {shown.map((row) => <EditableRow key={`${level}-${row.code}`} level={level} {...row} />)}
+                {!shown.length && <tr><td colSpan={4} className="px-4 py-8 text-center text-black/45">{level === "ward" && !regionCode ? "Select a region and district." : `No ${noun}s yet.`}</td></tr>}
               </tbody>
             </table>
           </div>
