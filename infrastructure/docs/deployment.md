@@ -1,3 +1,5 @@
+> Current AWS preview deployment uses Secrets Manager, verified RDS TLS and versioned release files. See [the deployment record](../../docs/deployment/live-preview.md); legacy SSM-based deployment commands below are not the current preview path.
+
 # Deployment
 
 Everything here runs from the admin workstation (`54.72.97.232`, AWS profile `boma-hoop`,

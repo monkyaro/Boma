@@ -1,0 +1,16 @@
+# Approved initial preview overlay; production URLs, private CA validation, no demo identities.
+services:
+  api:
+    volumes:
+      - ./certs/rds-ca.pem:/run/boma/rds-ca.pem:ro
+  celery-worker:
+    volumes:
+      - ./certs/rds-ca.pem:/run/boma/rds-ca.pem:ro
+  celery-beat:
+    volumes:
+      - ./certs/rds-ca.pem:/run/boma/rds-ca.pem:ro
+  keycloak:
+    command: [start, --import-realm]
+    volumes:
+      - ./certs/rds-ca.pem:/run/boma/rds-ca.pem:ro
+      - ./realm/boma-preview.json:/opt/keycloak/data/import/boma-preview.json:ro

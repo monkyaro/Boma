@@ -11,7 +11,7 @@ This is an expanded local implementation, not a completed production launch. Nev
 | Sales/rentals | BOMA-mediated offers/deals, negotiated owner-paid fixed/percent agreements, independent approval, immutable receipts, balances/finance report | Full contract storage/signature workflows, expanded rental milestones/ledger/invoice rendering, agreed proceeds collection model and real reconciliation |
 | Short stay | One unit per listing, nightly availability/block/hold locking, expiry/cancel requests, exact-payload idempotency, sandbox callback reconciliation | Approved commercial policies/capacity/pricing; real booking confirmation/check-in/out, refund/settlement policy engines and contracted provider; no live money movement |
 | Mobile | Native customer/officer flows, secure tokens/offline reference drafts, device registration; Android/iOS bundle export | Physical-device testing, media capture, accessibility/localization, push delivery credentials/adapter, native signing/distribution |
-| AWS | Existing Terraform preserved; discovery/approval/rollback checklist | Authorized temporary access, metadata discovery, current regional quote and approved resource plan; no AWS deployment performed |
+| AWS | Approved preview deployed to existing EC2/RDS at https://bomahoop.com; TLS/health/PKCE checks pass; managed secrets and snapshot retained | Full production readiness, restore drill/monitoring, remaining product/provider/policy gates; see deployment/live-preview.md |
 
 ## Unresolved owner inputs
 

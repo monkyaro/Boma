@@ -1,3 +1,5 @@
+> Superseded by [completed live preview deployment](live-preview.md). The preparation state below is retained as history.
+
 # Approved AWS preview deployment — preparation status
 
 Owner approved the costed plan in chat. Release activation remains pending authorized temporary deployment access; there has been no snapshot, database bootstrap/migration, IAM change, secret creation, ECR publication, DNS change or public service startup.

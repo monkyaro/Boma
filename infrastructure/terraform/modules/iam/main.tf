@@ -89,3 +89,24 @@ resource "aws_iam_instance_profile" "app" {
 
 output "instance_profile_name" { value = aws_iam_instance_profile.app.name }
 output "role_arn" { value = aws_iam_role.app.arn }
+
+# Runtime secret values remain outside Terraform state. Import existing approved resources first.
+variable "runtime_secret_arns" {
+  type    = list(string)
+  default = []
+}
+
+resource "aws_iam_role_policy" "runtime_secrets" {
+  count = length(var.runtime_secret_arns) > 0 ? 1 : 0
+  name  = "boma-managed-runtime-secrets"
+  role  = aws_iam_role.app.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid      = "BomaRuntimeSecrets"
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+      Resource = var.runtime_secret_arns
+    }]
+  })
+}

@@ -85,6 +85,7 @@ module "monitoring" {
 module "iam" {
   source               = "../../modules/iam"
   name                 = local.name
+  runtime_secret_arns  = [for secret in aws_secretsmanager_secret.runtime : secret.arn]
   bucket_arns          = module.s3.bucket_arns
   ssm_parameter_prefix = "/boma/production"
   log_group_arn        = module.monitoring.log_group_arn
@@ -132,3 +133,15 @@ output "db_master_secret_arn" { value = module.rds.master_secret_arn }
 output "buckets" { value = module.s3.bucket_names }
 output "ecr_repositories" { value = module.ecr.repository_urls }
 output "hostnames" { value = module.dns.hostnames }
+
+
+# Existing approved preview secrets: import metadata only; never put secret values in state.
+resource "aws_secretsmanager_secret" "runtime" {
+  for_each                = toset(["api", "keycloak", "compose"])
+  name                    = "/boma/production/${each.key}"
+  description             = "Approved BOMA preview runtime configuration"
+  recovery_window_in_days = 30
+  lifecycle {
+    prevent_destroy = true
+  }
+}

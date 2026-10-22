@@ -1,3 +1,5 @@
+> Update: the approved AWS preview is now live at https://bomahoop.com. See [deployment record](deployment/live-preview.md). The implementation results below predate that deployment.
+
 # BOMA implementation progress — 2026-10-22
 
 The existing scaffold has been expanded into a local web/API/native implementation. The complete production system is not finished; release-status.md records both implementation gaps and external approval/provider gates.

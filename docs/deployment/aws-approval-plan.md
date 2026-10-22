@@ -1,6 +1,6 @@
 # AWS initial deployment approval plan
 
-Prepared 2026-10-22T11:47:06.696450+00:00. Status: **owner approved in chat (“yes”); temporary deployment-role access still pending**. Native release preparation is authorized; no database/IAM/secret mutations have been performed.
+Prepared 2026-10-22T11:47:06.696450+00:00. Status: **approved and executed**. See [live preview deployment](live-preview.md) for actual resources, checks and cleanup. The preparation/discovery notes below are historical.
 
 ## Confirmed read-only discovery
 

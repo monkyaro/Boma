@@ -1,3 +1,5 @@
+> **AWS preview:** https://bomahoop.com — [deployment record](docs/deployment/live-preview.md). Registration and live transactions remain disabled pending release gates.
+
 # BOMA
 
 BOMA Real Estate Marketplace (Tanzania), as a monorepo:
