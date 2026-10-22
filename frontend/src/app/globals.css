@@ -4,28 +4,44 @@
 @theme inline {
   --color-brand: #0f4c5c;
   --color-brand-dark: #0a3540;
+  --color-brand-light: #e3eff1;
   --color-accent: #e07a2f;
-  --color-surface: #f2f6f7;
+  --color-accent-dark: #c4651f;
+  --color-accent-light: #fcefe4;
+  --color-surface: #f6f7f5;
+  --color-ink: #14212b;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--color-surface);
-  color: #171717;
+  color: var(--color-ink);
 }
 
 @layer components {
-  .button { @apply inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50; }
-  .button.secondary { @apply border border-black/15 bg-white text-brand hover:bg-surface; }
-  .panel { @apply rounded-2xl border border-black/10 bg-white p-5 sm:p-6; }
-  .field-label { @apply grid gap-1.5 text-sm font-medium; }
-  .field-label input, .field-label select, .field-label textarea { @apply min-w-0 rounded-lg border border-black/15 bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/15; }
+  .button { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark hover:shadow active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100; }
+  .button.secondary { @apply border border-black/10 bg-white text-brand shadow-none hover:border-brand/30 hover:bg-brand-light; }
+  .button.accent { @apply bg-accent hover:bg-accent-dark; }
+  .button.ghost { @apply bg-transparent text-brand shadow-none hover:bg-brand-light; }
+  .button.danger { @apply border border-red-200 bg-white text-red-700 shadow-none hover:bg-red-50; }
+  .button.lg { @apply px-6 py-3.5 text-base; }
+  .panel { @apply rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_3px_rgba(16,24,40,0.04)] sm:p-6; }
+  .field-label { @apply grid gap-1.5 text-sm font-medium text-ink/80; }
+  .field-label input, .field-label select, .field-label textarea { @apply min-w-0 rounded-xl border border-black/10 bg-white px-3.5 py-2.5 text-sm font-normal text-ink outline-none transition placeholder:text-black/35 hover:border-black/20 focus:border-brand focus:ring-4 focus:ring-brand/10; }
   .action-form { @apply grid gap-3; }
-  .eyebrow { @apply text-xs font-semibold tracking-widest; }
-  .hero { @apply relative overflow-hidden rounded-3xl bg-brand px-7 py-12 text-white sm:px-12 sm:py-16; background-image: radial-gradient(ellipse at top right, #39818a 0%, transparent 60%); }
-  .hero h1 { @apply text-4xl font-semibold leading-tight tracking-tight sm:text-6xl; }
-  .search-panel { @apply relative mx-3 -mt-4 grid gap-4 rounded-2xl border border-black/10 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.18em]; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .chip { @apply inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-ink/80 transition hover:border-brand/40 hover:text-brand; }
+  .chip[aria-pressed="true"], .chip[aria-current="true"] { @apply border-brand bg-brand text-white hover:text-white; }
+  .section-title { @apply text-xl font-semibold tracking-tight text-ink; }
+  .menu-item { @apply flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink/75 transition hover:bg-brand-light hover:text-brand; }
+  .menu-item[aria-current="page"] { @apply bg-brand text-white hover:bg-brand hover:text-white; }
+  .hero { @apply relative overflow-hidden rounded-[2rem] bg-brand px-6 pb-28 pt-12 text-white sm:px-12 sm:pb-32 sm:pt-16; background-image: radial-gradient(ellipse at 85% 0%, #3a8a93 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #0a3540 0%, transparent 60%); }
+  .hero h1 { @apply text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl; }
+  .search-panel { @apply relative z-10 mx-2 -mt-20 rounded-3xl border border-black/[0.06] bg-white p-4 shadow-xl shadow-brand/10 sm:mx-6 sm:p-6; }
+  .skeleton { @apply animate-pulse rounded-xl bg-black/[0.06]; }
+  details > summary { @apply cursor-pointer select-none font-medium text-brand; }
 }
 
 :focus-visible { outline: 3px solid #e07a2f; outline-offset: 3px; }

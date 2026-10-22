@@ -22,12 +22,15 @@ export function errorText(error: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
-export default function ActionForm({ path, fields = [], label, method = "post", fixed = {}, onSuccess }: {
+export default function ActionForm({ path, fields = [], label, method = "post", fixed = {}, onSuccess, variant = "" }: {
   path: string; fields?: FormField[]; label: string; method?: "post" | "patch" | "delete";
   fixed?: Record<string, unknown>; onSuccess?: () => void;
+  /** Extra button classes, e.g. "secondary" or "danger" */
+  variant?: string;
 }) {
   const cache = useQueryClient();
   const [message, setMessage] = useState("");
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,13 +43,14 @@ export default function ActionForm({ path, fields = [], label, method = "post", 
     }
     setBusy(true);
     setMessage("");
+    setFailed(false);
     try {
       await api.request({ url: path, method, data: values });
       setMessage("Saved successfully.");
       form.reset();
       await cache.invalidateQueries();
       onSuccess?.();
-    } catch (error) { setMessage(errorText(error)); }
+    } catch (error) { setMessage(errorText(error)); setFailed(true); }
     finally { setBusy(false); }
   }
   return <form onSubmit={submit} className="action-form">
@@ -57,7 +61,7 @@ export default function ActionForm({ path, fields = [], label, method = "post", 
       </select> : field.type === "textarea" ? <textarea name={field.name} required={!field.optional} maxLength={4000} rows={3} defaultValue={field.value} /> :
         <input name={field.name} type={field.type || "text"} required={!field.optional} defaultValue={field.value} min={field.type === "number" ? 0 : undefined} step={field.type === "number" ? "any" : undefined} />}
     </label>)}
-    <button disabled={busy} className="button">{busy ? "Saving…" : label}</button>
-    {message && <p role="status" className="text-sm">{message}</p>}
+    <button disabled={busy} className={`button ${variant}`}>{busy ? "Saving…" : label}</button>
+    {message && <p role="status" className={`rounded-lg px-3 py-2 text-sm ${failed ? "bg-red-50 text-red-800" : "bg-emerald-50 text-emerald-800"}`}>{message}</p>}
   </form>;
 }
