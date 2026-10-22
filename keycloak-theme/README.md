@@ -26,4 +26,4 @@ Output in `dist_keycloak/`: use `keycloak-theme-for-kc-all-other-versions.jar` f
 Copy it to `/opt/keycloak/providers/` in the Keycloak container (it is picked up at build/start time),
 then in the admin console set *Realm settings → Themes → Login theme* to `boma`.
 
-CI (`.github/workflows/ci.yaml`) runs `npm audit` and the build on every PR, and uploads the JAR as an artifact.
+CI (`.github/workflows/keycloak-theme.yml` at the repo root) runs `npm audit` and the build on every PR, and uploads the JAR as an artifact.

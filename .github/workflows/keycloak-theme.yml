@@ -1,11 +1,19 @@
-name: ci
+name: Keycloak theme
 on:
     push:
         branches:
             - main
+        paths:
+            - "keycloak-theme/**"
+            - ".github/workflows/keycloak-theme.yml"
     pull_request:
-        branches:
-            - main
+        paths:
+            - "keycloak-theme/**"
+            - ".github/workflows/keycloak-theme.yml"
+
+defaults:
+    run:
+        working-directory: keycloak-theme
 
 permissions:
     contents: read
@@ -19,6 +27,7 @@ jobs:
               with:
                   node-version: 22
                   cache: npm
+                  cache-dependency-path: keycloak-theme/package-lock.json
             # keycloakify packages the theme with Maven
             - uses: actions/setup-java@v4
               with:
@@ -30,4 +39,4 @@ jobs:
             - uses: actions/upload-artifact@v4
               with:
                   name: boma-keycloak-theme
-                  path: dist_keycloak/*.jar
+                  path: keycloak-theme/dist_keycloak/*.jar

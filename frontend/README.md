@@ -39,6 +39,6 @@ Realm roles used: `agent`, `owner`.
 `NEXT_PUBLIC_*` are build args with production defaults; `API_INTERNAL_URL` is set at runtime
 (e.g. `http://api:8000` on the Compose network).
 
-`.github/workflows/ci.yml`: lint, typecheck, tests, `npm audit`, build on every PR; on `main` it
+`.github/workflows/frontend.yml` (repo root): lint, typecheck, tests, `npm audit`, build on every PR; on `main` it
 builds a `linux/arm64` image, scans it with Trivy and pushes it to ECR `boma/web` via GitHub OIDC.
 Needs the repo variable `AWS_ECR_PUSH_ROLE_ARN`.

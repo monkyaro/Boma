@@ -42,7 +42,7 @@ The caller is in `g.user` / `g.token`.
 
 ## CI/CD
 
-`.github/workflows/ci.yml`: tests + migration drift check + `pip-audit` on every PR;
+`.github/workflows/backend.yml` (repo root): tests + migration drift check + `pip-audit` on every PR;
 on `main` it builds a `linux/arm64` image, scans it with Trivy and pushes it to ECR `boma/api`
 (tag = commit SHA) through GitHub OIDC. Needs the repo variable `AWS_ECR_PUSH_ROLE_ARN`.
 

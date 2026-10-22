@@ -13,3 +13,5 @@ override.tf.json
 .env
 .env.*
 *.pem
+!.env.example
+!backend/.env.test
