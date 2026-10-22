@@ -35,31 +35,7 @@ JSON requests; bearer tokens for all writes and private reads. Anonymous reads r
 - `GET /workspace/reports`: scoped listing counts. National administrator `GET /workspace/audit`: immutable history. No audit mutation endpoint; DB triggers also deny update/delete/truncate.
 - National administrator `POST /workspace/geography`: `{kind:"region"|"district"|"ward",name,parent_code?,code?}`. Import only from an approved source. Districts require a region `parent_code`, wards a district. When `code` is omitted it is generated sequentially: regions `01`, `02`…; districts `<region code>01`…; wards `<district code>01`…. Returns `201 {code}`; duplicate code or name within the parent `409`.
 - National administrator `PATCH /workspace/geography/<kind>/<code>`: `{name}` renames an entry (codes never change). Region and district renames also update the display names stored on listings. Audited as `geography.rename`; unknown entry `404`, duplicate name within the parent `409`.
-
-## Deals and owner-paid commissions
-
-- Staff `POST /deals`: `{listing_id,customer_id,agreed_price}` for published sale/rental; `GET` lists own or scoped staff transactions.
-- Staff `POST /deals/{id}/offers`: `{amount,reference}`; officer records mediated negotiation before a commission proposal exists.
-- Staff `POST /deals/{id}/commission`: `{calculation:"fixed"|"percentage",rate_or_amount,basis_amount,basis_description,written_reference,due_date}`. Payer is always derived from property owner, never supplied by caller. No global percentage.
-- Independent supervisor `POST /deals/{id}/commission/approve`: freezes agreement and returns invoice reference. Approved terms cannot be rewritten at the DB layer.
-- Owner/scoped staff `GET /deals/{id}/commission`: due/paid/balance and approved terms.
-- Finance/national admin `POST /deals/{id}/commission/payments`: `{amount,reference}` manually records reconciled owner commission receipts. Reference-idempotent, overpayment forbidden, immutable receipts. This does not collect sale/rent proceeds or call a payment provider.
-- Staff `POST /deals/{id}/outcome` with `{status:"completed"|"cancelled",reference}`; completion requires approved commission. Finance `GET /deals/finance/report` gives scoped totals.
-
-## Short-stay requests
-
-- `GET /bookings/availability/{listing_id}` returns unavailable dates, no guest data.
-- Owner `POST` same route with `{check_in,check_out,blocked}` for 1–90 nights. Cannot overwrite guest holds.
-- Guest `POST /bookings` with `{listing_id,check_in,check_out,guests,idempotency_key}` opens a 15-minute operational hold. Replays match exact payload; mismatches/overlaps return 409. Row locks + unique unit/night records prevent double booking. Each listing currently represents one unit.
-- `GET /bookings` only caller's requests; `POST /bookings/{id}/cancel` releases requested holds. Expired requests release availability when accessed; no automatic live confirmation/charge/refund. Scoped staff `GET /bookings/staff`.
-- The current 15-minute TTL, 90-night range and 20-guest input ceiling are proposed operational limits, not approved commercial booking policies. No capacity inventory or fee/cancellation policy is implied.
-
-## Media adapter
-
-`POST /media/uploads` with `{listing_id,kind:"photo"|"property_document",content_type,size_bytes}` is owner-scoped and disabled by default. Supported quarantined files: JPEG/PNG/PDF up to 10 MiB. When explicitly configured, returns a 5-minute size/content-type-constrained private S3 upload POST and upload ID. `GET /media/uploads/{id}` only returns caller's status, never originals/read URLs. There is no public release path without malware/metadata validation and derivative approval; identity-document upload/access is not implemented yet.
-
-## Sandbox callback contract
-
-The sandbox is disabled unless `PAYMENT_SANDBOX_ENABLED=true` and a runtime `PAYMENT_SANDBOX_SIGNING_SECRET` is configured. It does not call an external provider, move money or confirm a booking.
-
-`POST /payments/sandbox/intents` is account-scoped with `{booking_id,amount,idempotency_key}`. Its amount is explicitly test input, not an approved short-stay price/fee. Repeated identical requests return the original intent. Callbacks to `POST /payments/sandbox/webhook` use raw JSON `{event_id,intent_id,status:"succeeded"|"failed"}` and headers `X-Boma-Timestamp` (Unix seconds, within 5 minutes) and `X-Boma-Signature` (hex HMAC-SHA256 of `timestamp + "." + raw_body`). Unknown signatures fail closed; event IDs are persisted/idempotent, conflicting replays return 409, and terminal states cannot be reversed. A real contracted provider must supply its own verified signature, reconciliation, refund/settlement contract and sandbox tests before live enablement.
+- National administrator `GET /staff`: everyone holding a staff role (`officer`, `regional_supervisor`, `finance`, `support`, `national_admin`) with `{user_id,email,first_name,last_name,enabled,setup_pending,roles,assignments}`.
+- National administrator `POST /staff`: `{email,first_name,last_name,role:"officer"|"regional_supervisor"|"finance"|"support",region_code?,district_code?,ward_code?}` creates a Keycloak account with that single role and required actions verify email, set password and configure an authenticator app, then emails the setup link (3 days). Officers and supervisors require a valid region (optional district/ward) and get an officer assignment in the same request; other roles take no area. `national_admin` cannot be granted here (operator script only). Returns `201 {user_id,invite_sent}`; existing email `409`; a failed role grant removes the new account (`502`). Audited `staff.create`.
+- National administrator `PATCH /staff/<user_id>`: `{enabled}` deactivates (signs the user out, marks their assignments inactive) or reactivates (marks them active). `POST /staff/<user_id>/invitation` resends the setup email. Both refuse national administrators and the caller's own account (`403`) and non-staff accounts (`404`). Audited `staff.disable`/`staff.enable`/`staff.invite`.
+- Staff endpoints return `503` until `KEYCLOAK_ADMIN_URL` and `KEYCLOAK_ADMIN_CLIENT_SECRET` are configured (`infrastructure/scripts/keycloak-admin-api-client.sh` creates the `boma-admin-api` service-account client).

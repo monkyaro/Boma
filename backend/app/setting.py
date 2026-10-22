@@ -24,6 +24,16 @@ CELERYBEAT_SCHEDULE = {}
 # per request. KEYCLOAK_AUDIENCE is the API client id the token must target.
 KEYCLOAK_ISSUER = os.environ.get("KEYCLOAK_ISSUER")
 KEYCLOAK_AUDIENCE = os.environ.get("KEYCLOAK_AUDIENCE", "boma-api")
+KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "boma")
+
+# Staff provisioning through the Keycloak Admin REST API (service-account client).
+# Unset KEYCLOAK_ADMIN_URL or secret disables staff account creation (503).
+KEYCLOAK_ADMIN_URL = os.environ.get("KEYCLOAK_ADMIN_URL")  # e.g. http://keycloak:8080 on the Compose network
+KEYCLOAK_ADMIN_CLIENT_ID = os.environ.get("KEYCLOAK_ADMIN_CLIENT_ID", "boma-admin-api")
+KEYCLOAK_ADMIN_CLIENT_SECRET = os.environ.get("KEYCLOAK_ADMIN_CLIENT_SECRET")
+# Where the invitation email's setup link returns new staff after they finish
+STAFF_SETUP_CLIENT_ID = os.environ.get("STAFF_SETUP_CLIENT_ID", "boma-web")
+STAFF_SETUP_REDIRECT_URL = os.environ.get("STAFF_SETUP_REDIRECT_URL", "https://bomahoop.com/dashboard")
 
 # Comma-separated list, e.g. "https://bomahoop.com,https://www.bomahoop.com"
 CORS_ORIGINS = [

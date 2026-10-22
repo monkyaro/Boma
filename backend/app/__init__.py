@@ -16,6 +16,7 @@ from .deals.deals_api import deals_ns
 from .bookings.bookings_api import bookings_ns
 from .media.media_api import media_ns
 from .payments.payments_api import payments_ns
+from .staff.staff_api import staff_ns
 from . import model  # noqa: F401  registers models for migrations
 
 
@@ -76,6 +77,7 @@ def create_app(config_file="setting.py", config_overrides=None):
     api.add_namespace(bookings_ns)
     api.add_namespace(media_ns)
     api.add_namespace(payments_ns)
+    api.add_namespace(staff_ns)
 
     @app.teardown_request
     def teardown_request(exception=None):

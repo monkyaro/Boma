@@ -8,7 +8,7 @@ from app.extensions import db
 from app.listings.listing_model import Listing
 from app.onboarding.onboarding_model import IdentityVerificationCase
 from app.workspace.workspace_model import (
-    Region, District, Ward, OfficerAssignment, AuditEvent, VerificationCase, PropertyViewEvent,
+    Region, OfficerAssignment, AuditEvent, VerificationCase, PropertyViewEvent,
 )
 from app.bookings.bookings_model import Booking, AvailabilityNight
 
@@ -17,22 +17,6 @@ HEADERS = {"Authorization": "Bearer test"}
 
 def actor(claims, user, *roles, mfa=True):
     claims.update(sub=user, realm_access={"roles": list(roles)}, amr=["pwd", "otp"] if mfa else [])
-
-
-@pytest.fixture
-def geography(app):
-    suffix = uuid.uuid4().hex[:8]
-    region = Region(code="R" + suffix, name="Test region " + suffix)
-    other = Region(code="O" + suffix, name="Other test region " + suffix)
-    db.session.add_all([region, other])
-    db.session.flush()
-    district = District(code="D" + suffix, name="Test district", region_code=region.code)
-    db.session.add(district)
-    db.session.flush()
-    ward = Ward(code="W" + suffix, name="Test ward", district_code=district.code)
-    db.session.add(ward)
-    db.session.commit()
-    return region.code, district.code, ward.code, other.code
 
 
 @pytest.fixture

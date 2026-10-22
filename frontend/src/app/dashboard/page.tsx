@@ -9,6 +9,7 @@ import api from "@/services/apiClient";
 import ActionForm, { errorText } from "@/components/ActionForm";
 import Icon, { type IconName } from "@/components/Icon";
 import GeographyManager from "@/components/GeographyManager";
+import StaffManager, { staffName, useStaff } from "@/components/StaffManager";
 import { formatPrice } from "@/lib/format";
 import type { Listing } from "@/types/listing";
 import type { Geography, IdentityCase, Inquiry, Notification, Booking, Deal, Message, Assignment, ChangeRequest } from "@/types/workspace";
@@ -97,24 +98,28 @@ function Operations({ geography }: { geography?: Geography }) {
   const tasks = useQuery({ queryKey: ["tasks"], queryFn: async () => (await api.get<{ inquiries: Inquiry[]; changes: ChangeRequest[] }>("/workspace/tasks")).data });
   const report = useQuery({ queryKey: ["reports"], queryFn: async () => (await api.get<{ listings: number; verified: number }>("/workspace/reports")).data });
   const staffBookings = useItems<Booking>("/bookings/staff");
+  const directory = useStaff(hasRole("national_admin"));
+  const officers = directory.data?.filter((person) => person.enabled && person.roles.some((r) => r === "officer" || r === "regional_supervisor"));
+  const officerName = (id: string) => { const person = directory.data?.find((x) => x.user_id === id); return person ? staffName(person) : id; };
   return <div className="space-y-8"><p className="flex gap-3 rounded-2xl bg-brand-light px-5 py-4 text-sm text-brand-dark"><Icon name="shield" className="h-5 w-5 shrink-0" />Staff actions require multi-factor sign-in and an active geographic assignment. Reviews must be independent of the property owner.</p><Problem error={properties.error || cases.error || tasks.error || assignments.error || report.error} />
     {report.data && <div className="grid grid-cols-2 gap-4"><div className="panel"><p className="text-sm text-black/55">Properties in your area</p><p className="mt-2 text-4xl font-bold text-brand">{report.data.listings}</p></div><div className="panel"><p className="text-sm text-black/55">Verified properties</p><p className="mt-2 text-4xl font-bold text-emerald-700">{report.data.verified}</p></div></div>}
     <section><SectionTitle>Owner identity reviews</SectionTitle>{cases.data?.length === 0 && <Empty icon="user">No pending reviews in your assigned area.</Empty>}<div className="grid gap-4 lg:grid-cols-2">{cases.data?.map((item) => <div className="panel" key={item.case_id}><p className="mb-3 text-sm">Owner account: {item.user_id}<br />Residence: {geography?.regions.find((region) => region.code === item.residence_region_code)?.name || "Not selected"}</p><ActionForm path={`/workspace/identity-cases/${item.case_id}/decision`} fields={[{ name: "decision", label: "Decision", options: [{ value: "approved", label: "Approve identity" }, { value: "rejected", label: "Reject identity" }] }, { name: "reference", label: "Physical identity check reference" }]} label="Record identity decision" /></div>)}</div></section>
     <section><SectionTitle>Property verification</SectionTitle><div className="grid gap-4 lg:grid-cols-2">{properties.data?.map((listing) => <div className="panel" key={listing.listing_id}><h3 className="font-semibold">{listing.title}</h3><div className="mb-4 mt-2 flex flex-wrap gap-2"><Status value={listing.status} /><Status value={listing.verification_status} /></div>{listing.status === "published" && listing.verification_status !== "VERIFIED" && <ActionForm path={`/workspace/properties/${listing.listing_id}/verification`} fixed={{ version: listing.version }} fields={[{ name: "decision", label: "Verification decision", options: [{ value: "verified", label: "Verified" }, { value: "rejected", label: "Rejected" }] }, { name: "evidence", label: "Evidence and physical-check reference", type: "textarea" }]} label="Record property decision" />}</div>)}</div></section>
     <section><SectionTitle>Inquiries & viewing requests</SectionTitle>{tasks.data?.inquiries.map((inquiry) => <div className="panel mb-3" key={inquiry.inquiry_id}><p className="flex items-center gap-2 font-semibold capitalize">{inquiry.kind} <Status value={inquiry.status} /></p><p className="my-3 text-sm text-black/60">Property: {inquiry.listing_id}<br />Customer: {inquiry.customer_id}</p>{inquiry.status === "requested" && <ActionForm path={`/workspace/inquiries/${inquiry.inquiry_id}/schedule`} fields={[{ name: "officer_id", label: "Assigned officer account reference" }, { name: "scheduled_at", label: "Appointment time (ISO 8601 with +03:00 timezone)" }]} label="Assign officer and schedule" />}<Conversation inquiry={inquiry} /></div>)}</section>
     {hasRole("regional_supervisor", "national_admin") && <section><SectionTitle>Property change approvals</SectionTitle>{tasks.data?.changes.map((change) => <div className="panel mb-3" key={change.request_id}><p className="mb-3 whitespace-pre-wrap">{change.reason}</p><ActionForm path={`/workspace/changes/${change.request_id}/decision`} fields={[{ name: "version", label: "Current property version", type: "number" }, { name: "decision", label: "Decision", options: [{ value: "approve", label: "Approve reviewed changes" }, { value: "reject", label: "Reject" }, { value: "withdraw", label: "Approve withdrawal" }] }, { name: "title", label: "Reviewed property title", optional: true }, { name: "description", label: "Reviewed property description", type: "textarea", optional: true }]} label="Record change decision" /></div>)}</section>}
-    <section><SectionTitle>Officer coverage</SectionTitle>{assignments.data?.map((assignment) => <div className="panel mb-3" key={assignment.assignment_id}><p>{assignment.officer_id} · {geography?.regions.find((region) => region.code === assignment.region_code)?.name}</p><p className="my-2 text-sm">{assignment.active ? "Active" : "Inactive"} · {assignment.available ? "Available" : "Unavailable"}</p><ActionForm path={`/workspace/assignments/${assignment.assignment_id}`} method="patch" fixed={{ available: !assignment.available }} label={assignment.available ? "Set unavailable" : "Set available"} /></div>)}{hasRole("regional_supervisor", "national_admin") && <details className="panel"><summary>Assign an officer</summary><ActionForm path="/workspace/assignments" fields={[{ name: "officer_id", label: "Officer account reference" }, { name: "region_code", label: "Region", options: geography?.regions.map((region) => ({ value: region.code, label: region.name })) || [] }, { name: "district_code", label: "District code (optional)", optional: true }, { name: "ward_code", label: "Ward code (optional)", optional: true }]} label="Create assignment" /></details>}</section>
+    <section><SectionTitle>Officer coverage</SectionTitle>{assignments.data?.map((assignment) => <div className="panel mb-3" key={assignment.assignment_id}><p>{officerName(assignment.officer_id)} · {geography?.regions.find((region) => region.code === assignment.region_code)?.name}</p><p className="my-2 text-sm">{assignment.active ? "Active" : "Inactive"} · {assignment.available ? "Available" : "Unavailable"}</p><ActionForm path={`/workspace/assignments/${assignment.assignment_id}`} method="patch" fixed={{ available: !assignment.available }} label={assignment.available ? "Set unavailable" : "Set available"} /></div>)}{hasRole("regional_supervisor", "national_admin") && <details className="panel"><summary>Assign an officer</summary><ActionForm path="/workspace/assignments" fields={[officers ? { name: "officer_id", label: "Officer", options: officers.map((person) => ({ value: person.user_id, label: `${staffName(person)} (${person.email})` })) } : { name: "officer_id", label: "Officer account reference" }, { name: "region_code", label: "Region", options: geography?.regions.map((region) => ({ value: region.code, label: region.name })) || [] }, { name: "district_code", label: "District code (optional)", optional: true }, { name: "ward_code", label: "Ward code (optional)", optional: true }]} label="Create assignment" /></details>}</section>
     <section><SectionTitle>Short-stay requests</SectionTitle><Problem error={staffBookings.error} />{staffBookings.data?.map((booking) => <div className="panel mb-3" key={booking.booking_id}><p>{booking.check_in} → {booking.check_out} · {booking.status}</p><p className="text-sm text-black/60">Confirmation and payment await approved short-stay policies.</p></div>)}</section>
     {hasRole("national_admin") && <GeographyManager geography={geography} />}
   </div>;
 }
 
-const SECTIONS: { value: string; label: string; icon: IconName; staff?: boolean }[] = [
+const SECTIONS: { value: string; label: string; icon: IconName; staff?: boolean; admin?: boolean }[] = [
   { value: "requests", label: "My requests", icon: "inbox" },
   { value: "owner", label: "My properties", icon: "key" },
   { value: "deals", label: "Transactions", icon: "briefcase" },
   { value: "notifications", label: "Notifications", icon: "bell" },
   { value: "operations", label: "Officer workspace", icon: "clipboard", staff: true },
+  { value: "staff", label: "Staff accounts", icon: "user", admin: true },
 ];
 
 function Workspace() {
@@ -126,7 +131,8 @@ function Workspace() {
   if (!ready) return <div role="status" aria-label="Loading your workspace…" className="grid gap-6 lg:grid-cols-[240px_1fr]"><div className="skeleton h-72" /><div className="space-y-4"><div className="skeleton h-10 w-1/2" /><div className="skeleton h-40" /><div className="skeleton h-40" /></div></div>;
   if (!user) return <section className="panel mx-auto max-w-lg py-12 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-light text-brand"><Icon name="user" className="h-6 w-6" /></span><h1 className="mt-5 text-2xl font-semibold">Your BOMA workspace</h1><p className="my-4 text-black/55">Sign in to save properties, contact a BOMA officer, or list your property.</p><button className="button lg" onClick={login}>Sign in</button><p className="mt-5 text-sm text-black/55">New to BOMA? <button type="button" className="font-semibold text-brand underline-offset-2 hover:underline" onClick={register}>Create a free account</button></p></section>;
   const staff = hasRole("officer", "regional_supervisor", "national_admin");
-  const sections = SECTIONS.filter((section) => !section.staff || staff);
+  const admin = hasRole("national_admin");
+  const sections = SECTIONS.filter((section) => (!section.staff || staff) && (!section.admin || admin));
   const requested = params.get("tab");
   const tab = sections.some((section) => section.value === requested) ? requested : "requests";
   const unread = notifications.data?.filter((item) => !item.read_at).length ?? 0;
@@ -153,6 +159,7 @@ function Workspace() {
         {tab === "deals" && <Deals staff={staff} />}
         {tab === "notifications" && <Notifications />}
         {tab === "operations" && staff && <Operations geography={geography.data} />}
+        {tab === "staff" && admin && <StaffManager geography={geography.data} />}
       </div>
     </div>
   </>;

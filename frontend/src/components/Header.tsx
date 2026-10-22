@@ -49,6 +49,7 @@ export default function Header() {
     ["/dashboard?tab=deals", "Transactions", "briefcase"],
     ["/dashboard?tab=notifications", "Notifications", "bell"],
     ...(staff ? [["/dashboard?tab=operations", "Officer workspace", "clipboard"] as [string, string, IconName]] : []),
+    ...(hasRole("national_admin") ? [["/dashboard?tab=staff", "Staff accounts", "user"] as [string, string, IconName]] : []),
   ];
   const closeAll = () => { setMenuOpen(false); setMobileOpen(false); };
 
