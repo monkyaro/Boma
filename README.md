@@ -36,3 +36,12 @@ Requires the `boma-hoop` AWS CLI profile. Never commit `*.tfvars`, `.env` files 
 - `infrastructure/scripts/` – `init-params.sh` (SSM config/secrets), `db-init.sh` (DB roles, PostGIS), `deploy.sh` (deploy + rollback), `backup.sh`, `restore.sh`, `enable-ssh.sh`
 - `infrastructure/docker/` – production Compose stack (nginx + Let's Encrypt, web, api, Celery, Keycloak, Redis) and `render-env.sh`
 - `infrastructure/docs/` – [architecture](infrastructure/docs/architecture.md), [deployment](infrastructure/docs/deployment.md), [security](infrastructure/docs/security.md), [cost estimate](infrastructure/docs/cost-estimate.md), [disaster recovery](infrastructure/docs/disaster-recovery.md)
+
+## Development plan
+
+The owner specification is tracked in [requirements](docs/requirements.md),
+[architecture](docs/architecture.md), [decisions](docs/decisions.md), and
+[implementation plan](docs/implementation-plan.md).
+Use [isolated local development](docs/local-development.md) for this host.
+Infrastructure descriptions above are existing repository claims, pending read-only
+verification; they do not authorize resource creation or deployment.

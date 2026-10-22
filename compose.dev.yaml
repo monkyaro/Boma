@@ -1,0 +1,62 @@
+# Isolated from other applications on the host. Local-only credentials.
+name: boma-local
+x-api: &api
+  build: ./backend
+  environment: &environment
+    SECRET_KEY: local-development-only
+    SQLALCHEMY_DATABASE_URI: postgresql+psycopg://boma:boma@postgres:5432/boma
+    CELERY_BROKER_URL: redis://redis:6379/0
+    CELERY_RESULT_BACKEND: redis://redis:6379/1
+    KEYCLOAK_ISSUER: http://localhost:8180/realms/boma
+    KEYCLOAK_AUDIENCE: boma-api
+    CORS_ORIGINS: http://localhost:3000
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: boma
+      POSTGRES_PASSWORD: boma
+      POSTGRES_DB: boma
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U boma]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  api:
+    <<: *api
+    ports:
+      - '127.0.0.1:8100:8000'
+  worker:
+    <<: *api
+    command: celery -A run.celery worker --loglevel=info
+  tests:
+    <<: *api
+    profiles: [test]
+    user: root
+    working_dir: /workspace/backend
+    volumes:
+      - .:/workspace
+    environment:
+      <<: *environment
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg://boma:boma@postgres:5432/boma_test
+    command: [sh, -c, 'pip install --no-cache-dir -r requirements-dev.txt && python -m pytest -q && flask --app run db upgrade && flask --app run db check']
+volumes:
+  database:
+  redis:

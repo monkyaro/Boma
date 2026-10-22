@@ -65,3 +65,7 @@ npm run build-keycloak-theme
 - Keep each pull request to one concern, and say in the title which app it touches.
 - In the description, list what changed, how you tested it, and any new environment variables, migrations or Keycloak changes the maintainer must make.
 - CI must be green before review.
+
+## Owner master specification (2026-10-22)
+
+Read `docs/requirements.md`, `docs/decisions.md` and `docs/implementation-plan.md` for the owner-supplied `cod` specification. Preserve the existing directory layout. New listing creation permits `owner`, not the legacy `agent` role. Identity cases do not grant roles; officer review requires geographic scoping, staff MFA and audit history before it is enabled. Treat existing infrastructure resource and budget statements as unverified until owner-authorized read-only discovery. Target runtime secrets are Secrets Manager/instance roles; existing SSM configuration requires a reviewed transition. Never inspect local credential files or production data as a shortcut to discovery.

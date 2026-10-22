@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - "compose.dev.yaml"
       - ".github/workflows/backend.yml"
   push:
     branches:
       - main
     paths:
       - "backend/**"
+      - "compose.dev.yaml"
       - ".github/workflows/backend.yml"
 
 defaults:
@@ -47,6 +49,9 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: backend/requirements*.txt
+
+      - name: Validate isolated local stack
+        run: docker compose -f ../compose.dev.yaml --profile test config --quiet
 
       - name: Install dependencies
         run: pip install -r requirements-dev.txt pip-audit
