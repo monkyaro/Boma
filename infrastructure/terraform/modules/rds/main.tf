@@ -21,8 +21,9 @@ resource "aws_db_parameter_group" "this" {
   family = "postgres17"
 
   parameter {
-    name  = "rds.force_ssl"
-    value = "1"
+    name         = "rds.force_ssl"
+    value        = "1"
+    apply_method = "pending-reboot" # how AWS stores it; avoids a perpetual diff
   }
   parameter {
     name  = "log_min_duration_statement"

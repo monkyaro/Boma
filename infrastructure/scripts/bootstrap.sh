@@ -1,6 +1,6 @@
 #!/bin/bash
 # BOMA app host bootstrap (EC2 user data, rendered by Terraform templatefile).
-# Template vars: hostname, log_group_name. Bash vars below avoid $${} braces.
+# Template vars: hostname, log_group_name, ssh_allowed_cidrs, ssh_public_keys. Bash vars below avoid $${} braces.
 set -euxo pipefail
 exec > >(tee /var/log/boma-bootstrap.log) 2>&1
 export DEBIAN_FRONTEND=noninteractive
@@ -27,14 +27,47 @@ APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
 EOF
 
-# --- No SSH: administration is via SSM Session Manager
+# --- SSH: key-only for the boma admin user, from ssh_allowed_cidrs (also enforced by the security group).
+# With no CIDRs, SSH stays off and administration is via SSM Session Manager.
+cat > /etc/ssh/sshd_config.d/10-boma.conf <<'EOF'
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+AllowUsers boma
+MaxAuthTries 3
+LoginGraceTime 30
+X11Forwarding no
+EOF
+# Admin user: no password (key-only), passwordless sudo like the default ubuntu user
+id boma >/dev/null 2>&1 || useradd --create-home --shell /bin/bash --groups sudo boma
+echo "boma ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-boma
+chmod 440 /etc/sudoers.d/90-boma
+visudo -cf /etc/sudoers.d/90-boma
+install -d -m 700 -o boma -g boma /home/boma/.ssh
+cat > /home/boma/.ssh/authorized_keys <<'EOF'
+%{ for key in ssh_public_keys ~}
+${key}
+%{ endfor ~}
+EOF
+chown boma:boma /home/boma/.ssh/authorized_keys
+chmod 600 /home/boma/.ssh/authorized_keys
+%{ if length(ssh_allowed_cidrs) > 0 ~}
+install -d -m 755 /run/sshd  # missing until sshd has run once
+sshd -t
+systemctl enable --now ssh.service
+%{ else ~}
 systemctl disable --now ssh.socket ssh.service || true
+%{ endif ~}
 
 # --- Host firewall (defence in depth behind the security group)
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 80/tcp
 ufw allow 443/tcp
+%{ for cidr in ssh_allowed_cidrs ~}
+ufw allow from ${cidr} to any port 22 proto tcp comment 'SSH admin'
+%{ endfor ~}
 ufw --force enable
 
 # --- Docker Engine + Compose plugin (official repo)
@@ -64,6 +97,7 @@ EOF
 systemctl enable docker
 systemctl restart docker
 usermod -aG docker ubuntu
+usermod -aG docker boma
 
 # --- AWS CLI v2 (arm64)
 cd /tmp

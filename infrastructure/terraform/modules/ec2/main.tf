@@ -8,6 +8,14 @@ variable "instance_profile_name" { type = string }
 variable "root_volume_gb" { type = number }
 variable "hostname" { type = string }
 variable "log_group_name" { type = string }
+variable "ssh_allowed_cidrs" {
+  type    = list(string)
+  default = []
+}
+variable "ssh_public_keys" {
+  type    = list(string)
+  default = []
+}
 
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -46,8 +54,10 @@ resource "aws_instance" "app" {
   }
 
   user_data = templatefile("${path.module}/../../../scripts/bootstrap.sh", {
-    hostname       = var.hostname
-    log_group_name = var.log_group_name
+    hostname          = var.hostname
+    log_group_name    = var.log_group_name
+    ssh_allowed_cidrs = var.ssh_allowed_cidrs
+    ssh_public_keys   = var.ssh_public_keys
   })
   user_data_replace_on_change = false
 

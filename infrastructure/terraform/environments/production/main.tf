@@ -36,6 +36,12 @@ locals {
   domain     = "bomahoop.com"
   account_id = data.aws_caller_identity.current.account_id
   subdomains = ["www", "api", "auth", "admin"]
+
+  # Key-only SSH as boma@bomahoop.com, from these addresses only (SSM stays available).
+  ssh_allowed_cidrs = ["54.72.97.232/32"] # admin workstation (i-0fa6e31645ab4be36)
+  ssh_public_keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBeU0Bf70/1pEN9So4O+bjdGNuQp+FxtPo5X0+JJWayu minja@ip-10-12-13-71-boma",
+  ]
 }
 
 module "network" {
@@ -49,6 +55,8 @@ module "security" {
   source = "../../modules/security"
   name   = local.name
   vpc_id = module.network.vpc_id
+
+  ssh_allowed_cidrs = local.ssh_allowed_cidrs
 }
 
 module "s3" {
@@ -92,6 +100,8 @@ module "ec2" {
   root_volume_gb        = 30
   hostname              = "boma-prod-app-01"
   log_group_name        = module.monitoring.log_group_name
+  ssh_allowed_cidrs     = local.ssh_allowed_cidrs
+  ssh_public_keys       = local.ssh_public_keys
 }
 
 module "rds" {

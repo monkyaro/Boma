@@ -1,7 +1,11 @@
-# Security groups. No SSH: administration is via SSM Session Manager.
+# Security groups. SSH only from ssh_allowed_cidrs; SSM Session Manager also works.
 
 variable "name" { type = string }
 variable "vpc_id" { type = string }
+variable "ssh_allowed_cidrs" {
+  type    = list(string)
+  default = []
+}
 
 resource "aws_security_group" "app" {
   name        = "${var.name}-app"
@@ -26,6 +30,16 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ssh" {
+  for_each          = toset(var.ssh_allowed_cidrs)
+  security_group_id = aws_security_group.app.id
+  description       = "SSH (key-only) from admin"
+  cidr_ipv4         = each.value
+  ip_protocol       = "tcp"
+  from_port         = 22
+  to_port           = 22
 }
 
 # Outbound needed for OS updates, image pulls, Let's Encrypt, SES, FCM, SSM.
