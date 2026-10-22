@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* BOMA brand, shared with the Keycloak login theme */
+@theme inline {
+  --color-brand: #0f4c5c;
+  --color-brand-dark: #0a3540;
+  --color-accent: #e07a2f;
+  --color-surface: #f2f6f7;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-surface);
+  color: #171717;
+}
