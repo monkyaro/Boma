@@ -59,3 +59,8 @@ Incremental spend remains within the approved low-usage allowance: three secrets
 - Built natively on the host with `NEXT_PUBLIC_DEPLOYMENT_PREVIEW=true` from `/opt/boma/releases/4c473a30aa2c/source`; Trivy HIGH/CRITICAL fixable gate passed (`web-scan.log`). The image is local to the host and was not pushed to ECR.
 - Switched by setting `WEB_TAG` in `/opt/boma/current/.env` and recreating only the `web` service; health check, nginx probe and public HTTPS checks passed.
 - Rollback: `cp /opt/boma/current/.env.bak-before-web-4c473a30aa2c /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps web` (restores web `1d93d01e6616`).
+
+## Geography manager fix — 2026-10-22
+
+- Web only: `boma/web:c3aa9e7c16c3` (commit `c3aa9e7`), same host-build, Trivy gate and `WEB_TAG` switch as above; previous web `4c473a30aa2c`.
+- Rollback: `cp /opt/boma/current/.env.bak-before-web-c3aa9e7c16c3 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps web`.
