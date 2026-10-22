@@ -2,7 +2,7 @@
 export const appConfig = {
   appName: "BOMA",
   // Browser -> API, through Nginx (https://api.bomahoop.com)
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100",
   // Seconds before expiry to refresh the access token
   tokenRefreshThreshold: 70,
   requestTimeout: 30000,

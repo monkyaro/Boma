@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getKeycloak } from "@/lib/keycloak";
 
 interface AuthUser {
@@ -20,6 +21,8 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const previousSubject = useRef<string | null>(null);
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
 
@@ -27,6 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const keycloak = getKeycloak();
     const syncUser = () => {
       const claims = keycloak.tokenParsed;
+      const nextSubject = keycloak.authenticated ? claims?.sub || null : null;
+      if (previousSubject.current !== nextSubject) {
+        queryClient.clear();
+        previousSubject.current = nextSubject;
+      }
       setUser(
         keycloak.authenticated && claims
           ? {
@@ -55,15 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     init
       .then(syncUser)
-      .catch((err) => console.error("Keycloak init failed", err))
+      .catch(() => console.warn("BOMA sign-in is temporarily unavailable"))
       .finally(() => setReady(true));
-  }, []);
+  }, [queryClient]);
 
   const value: AuthState = {
     ready,
     user,
     login: () => getKeycloak().login(),
-    logout: () => getKeycloak().logout({ redirectUri: window.location.origin }),
+    logout: () => { queryClient.clear(); void getKeycloak().logout({ redirectUri: window.location.origin }); },
     hasRole: (...roles) => !!user && roles.some((r) => user.roles.includes(r)),
   };
 

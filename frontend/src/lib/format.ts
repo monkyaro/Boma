@@ -9,5 +9,6 @@ export function formatPrice(price: string | number, currency = "TZS"): string {
 }
 
 export function listingTypeLabel(type: string): string {
+  if (type === "short_stay") return "Short stay";
   return type === "rent" ? "For rent" : "For sale";
 }

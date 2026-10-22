@@ -1,9 +1,14 @@
-export type ListingType = "sale" | "rent";
+export type ListingType = "sale" | "rent" | "short_stay";
 export type PropertyType = "house" | "apartment" | "land" | "commercial" | "room";
 
 export interface Listing {
   listing_id: string;
-  owner_id: string;
+  owner_id?: string;
+  verification_status: "UNVERIFIED" | "VERIFIED";
+  version: number;
+  region_code?: string;
+  district_code?: string;
+  ward_code?: string;
   title: string;
   description: string | null;
   listing_type: ListingType;
@@ -30,6 +35,9 @@ export interface NewListing {
   price: string;
   region: string;
   district?: string;
+  region_code?: string;
+  district_code?: string;
+  ward_code?: string;
   latitude?: number;
   longitude?: number;
 }

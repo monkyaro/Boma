@@ -11,6 +11,9 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       <span className="text-xs font-semibold uppercase tracking-wide text-accent">
         {listingTypeLabel(listing.listing_type)} · {listing.property_type}
       </span>
+      <p className={`mt-3 text-xs font-semibold ${listing.verification_status === "VERIFIED" ? "text-brand" : "text-amber-800"}`}>
+        {listing.verification_status === "VERIFIED" ? "✓ BOMA verified property" : "Unverified property"}
+      </p>
       <h3 className="mt-1 line-clamp-2 font-semibold">{listing.title}</h3>
       <p className="mt-1 text-sm text-black/60">
         {[listing.district, listing.region].filter(Boolean).join(", ")}

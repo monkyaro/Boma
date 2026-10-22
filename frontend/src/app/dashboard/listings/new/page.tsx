@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/apiClient";
+import type { Geography, IdentityCase } from "@/types/workspace";
 import Link from "next/link";
 import { isAxiosError } from "axios";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +17,11 @@ const inputClass = "mt-1 w-full rounded-md border border-black/15 bg-white px-3 
 export default function NewListingPage() {
   const { ready, user, login, hasRole } = useAuth();
   const createListing = useCreateListing();
+  const geography = useQuery({ queryKey: ["geography"], queryFn: async () => (await api.get<Geography>("/workspace/geography")).data });
+  const identity = useQuery({ queryKey: ["identity-draft"], enabled: !!user, queryFn: async () => {
+    try { return (await api.get<IdentityCase>("/onboarding/owner-identity")).data; }
+    catch { return null; }
+  } });
   const [form, setForm] = useState<NewListing>({
     title: "",
     description: "",
@@ -32,8 +40,9 @@ export default function NewListingPage() {
       </button>
     );
   }
-  if (!hasRole("agent", "owner")) {
-    return <p>Only agents and property owners can create listings.</p>;
+  if (identity.isPending && !hasRole("owner")) return <p>Checking owner onboarding…</p>;
+  if (!hasRole("owner") && !identity.data) {
+    return <p>Start <Link href="/dashboard" className="text-brand underline">owner onboarding</Link> to prepare property drafts.</p>;
   }
 
   const set = <K extends keyof NewListing>(key: K, value: NewListing[K]) =>
@@ -41,7 +50,7 @@ export default function NewListingPage() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    createListing.mutate(form);
+    createListing.mutate(Object.fromEntries(Object.entries(form).filter(([, value]) => value !== "")) as unknown as NewListing);
   };
 
   if (createListing.isSuccess) {
@@ -49,8 +58,8 @@ export default function NewListingPage() {
       <div className="rounded-xl border border-black/10 bg-white p-6">
         <p className="font-semibold">Listing saved as a draft.</p>
         <p className="mt-1 text-sm text-black/60">It will appear publicly once it is published.</p>
-        <Link href="/" className="mt-4 inline-block font-semibold text-brand">
-          Back to listings
+        <Link href="/dashboard" className="mt-4 inline-block font-semibold text-brand">
+          Go to my workspace
         </Link>
       </div>
     );
@@ -78,6 +87,7 @@ export default function NewListingPage() {
           <select value={form.listing_type} onChange={(e) => set("listing_type", e.target.value as ListingType)} className={inputClass}>
             <option value="sale">For sale</option>
             <option value="rent">For rent</option>
+            <option value="short_stay">Short stay</option>
           </select>
         </label>
         <label className="block text-sm font-medium">
@@ -100,14 +110,24 @@ export default function NewListingPage() {
       <div className="grid grid-cols-2 gap-4">
         <label className="block text-sm font-medium">
           Region
-          <input required value={form.region} onChange={(e) => set("region", e.target.value)} className={inputClass} />
+          <select required value={form.region_code || ""} onChange={(e) => setForm((old) => ({ ...old, region_code: e.target.value, region: geography.data?.regions.find((x) => x.code === e.target.value)?.name || "", district_code: "", ward_code: "", district: "" }))} className={inputClass}>
+            <option value="">Select region</option>{geography.data?.regions.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+          </select>
         </label>
         <label className="block text-sm font-medium">
           District
-          <input value={form.district} onChange={(e) => set("district", e.target.value)} className={inputClass} />
+          <select required value={form.district_code || ""} onChange={(e) => setForm((old) => ({ ...old, district_code: e.target.value, district: geography.data?.districts.find((x) => x.code === e.target.value)?.name || "", ward_code: "" }))} className={inputClass}>
+            <option value="">Select district</option>{geography.data?.districts.filter((x) => x.region_code === form.region_code).map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+          </select>
         </label>
       </div>
 
+      <label className="block text-sm font-medium">Ward
+        <select required value={form.ward_code || ""} onChange={(e) => set("ward_code", e.target.value)} className={inputClass}>
+          <option value="">Select ward</option>{geography.data?.wards.filter((x) => x.district_code === form.district_code).map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+        </select>
+      </label>
+      {!geography.isPending && !geography.data?.regions.length && <p role="status">BOMA is preparing the Tanzania region directory. Listing creation will be available once locations are loaded.</p>}
       <label className="block text-sm font-medium">
         Description
         <textarea rows={5} value={form.description} onChange={(e) => set("description", e.target.value)} className={inputClass} />

@@ -13,7 +13,8 @@ export default function Header() {
           BOMA
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          {ready && user && hasRole("agent", "owner") && (
+          {ready && user && <Link href="/dashboard" className="font-semibold text-brand">My workspace</Link>}
+          {ready && user && hasRole("owner") && (
             <Link href="/dashboard/listings/new" className="font-semibold text-brand">
               List a property
             </Link>

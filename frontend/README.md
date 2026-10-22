@@ -14,7 +14,7 @@ client that refreshes and attaches the token, and React Query hooks per feature.
 - `src/lib/keycloak.ts` – shared Keycloak instance; `src/contexts/AuthContext.tsx` – `useAuth()`
 - `src/services/apiClient.ts` – browser axios client with Bearer token
 - `src/services/listingServerApi.ts` – server-side reads via `API_INTERNAL_URL` (runtime)
-- `src/app/` – `/` latest listings, `/listings/[id]`, `/dashboard/listings/new` (agents/owners), `/healthz`
+- `src/app/` – `/` latest listings, `/listings/[id]`, `/dashboard/listings/new` (owner applicants/owners), `/healthz`
 - `public/silent-check-sso.html` – Keycloak silent SSO check
 
 ## Develop
@@ -22,7 +22,7 @@ client that refreshes and attaches the token, and React Query hooks per feature.
 ```bash
 cp .env.example .env.local
 npm install
-npm run dev            # http://localhost:3000, backend on :8000
+npm run dev            # http://localhost:3000, backend on :8100
 npm run lint && npm run typecheck && npm test
 ```
 
@@ -31,7 +31,7 @@ npm run lint && npm run typecheck && npm test
 Realm `boma`, public client `boma-web` (standard flow + PKCE S256), redirect URIs
 `https://bomahoop.com/*`, `https://www.bomahoop.com/*`, web origins the same.
 Add an audience mapper so access tokens include `boma-api` (the backend checks `aud`).
-Realm roles used: `agent`, `owner`.
+Realm roles used: `owner`, `buyer`, `tenant`, `guest`, `officer`, `regional_supervisor`, `national_admin`, `finance`, `support`.
 
 ## Docker / CI
 
@@ -42,3 +42,7 @@ Realm roles used: `agent`, `owner`.
 `.github/workflows/frontend.yml` (repo root): lint, typecheck, tests, `npm audit`, build on every PR; on `main` it
 builds a `linux/arm64` image, scans it with Trivy and pushes it to ECR `boma/web` via GitHub OIDC.
 Needs the repo variable `AWS_ECR_PUSH_ROLE_ARN`.
+
+## Expanded workspace
+
+`/dashboard` contains customer requests/conversations, saved properties, notifications, owner onboarding/listings and role-scoped staff/deal workflows. The API is authoritative for permissions/MFA/geography and workflow guards. Browser query caches are cleared when the signed-in subject changes or signs out. Local defaults use API :8100 and Keycloak :8180; see ../docs/local-development.md. Run `npm run test:e2e` for mocked public marketplace browser checks. Real login/provider flows remain a separate integration gate.
