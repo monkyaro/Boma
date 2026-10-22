@@ -48,6 +48,14 @@ def main():
     args = parser.parse_args()
     if not args.directory.is_dir():
         raise ValueError("Deployment directory must already exist")
+    identity = subprocess.run([
+        "aws", "sts", "get-caller-identity", "--region", args.region,
+        "--query", "Arn", "--output", "text",
+    ], capture_output=True, text=True, check=False)
+    if identity.returncode or not identity.stdout.strip().startswith(
+        "arn:aws:sts::282400617488:assumed-role/boma-prod-app-host/"
+    ):
+        raise RuntimeError("Expected the approved EC2 instance role")
     staged = {}
     for name, filename in (("api", "api.env"), ("keycloak", "keycloak.env"), ("compose", ".env")):
         result = subprocess.run([
