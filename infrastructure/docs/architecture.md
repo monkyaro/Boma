@@ -63,7 +63,7 @@ All infrastructure is Terraform (`terraform/environments/production`), state in 
 | `www.bomahoop.com` | 301 to the apex |
 | `admin.bomahoop.com` | Administrative dashboard (same Next.js app) |
 | `api.bomahoop.com` | REST API (`/health/live`, `/health/ready`, Swagger off) |
-| `auth.bomahoop.com` | Keycloak realm `boma`; `/admin/` only from the admin IP |
+| `auth.bomahoop.com` | Keycloak realm `boma`; `/admin/` open to all while in test (allow list to be restored before go-live) |
 
 ### Outbound connectivity
 

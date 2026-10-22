@@ -8,7 +8,7 @@
 |---|---|---|
 | Administrators (AWS) | IAM user `hoop-boma-1`, CLI profile `boma-hoop` | The root account is not used. Enable MFA on the IAM user if it is not already on. |
 | Administrators (host) | SSM Session Manager (preferred) or SSH `boma@bomahoop.com` | SSH is key-only, from `54.72.97.232/32` only, through both the SG and ufw. No root login, no password auth. The `ubuntu` user has been removed. |
-| Keycloak admin console | `https://auth.bomahoop.com/admin/` | nginx allows only the admin IP. The management port 9000 is never exposed. |
+| Keycloak admin console | `https://auth.bomahoop.com/admin/` | Open to all IPs while bomahoop.com is a test environment. **Before go-live**, restore `allow <admin IP>; deny all;` on `location /admin/` in `docker/nginx/conf.d/boma.conf`. The management port 9000 is never exposed. |
 | App host (instance role) | `boma-prod-app-host` | SSM core, CloudWatch agent, ECR read-only, S3 object access to the 3 BOMA buckets, read on `/boma/production/*` parameters, SES send only from `@bomahoop.com`, writes to its own log group |
 | CI | GitHub OIDC (planned) | Push to ECR only. No long-lived keys. |
 

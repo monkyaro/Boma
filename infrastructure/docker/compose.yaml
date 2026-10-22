@@ -1,6 +1,6 @@
 # BOMA production stack on the EC2 host (/opt/boma). Deployed by scripts/deploy.sh.
 # PostgreSQL is RDS (databases "boma" and "keycloak"); nothing here publishes a port except nginx.
-# Secrets come from SSM Parameter Store, written to .env / *.env by render-env.sh (never committed).
+# Secrets come from Secrets Manager, written to .env / *.env by scripts/render-secrets.py (never committed).
 # Compose variables (.env): REGISTRY, API_TAG, WEB_TAG, REDIS_PASSWORD.
 
 name: boma

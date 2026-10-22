@@ -25,6 +25,11 @@ Run these in order. Each step is idempotent.
 | Images | Push to `main` (CI) | `boma/api:<sha>` and `boma/web:<sha>` in ECR |
 | Theme | Keycloak theme workflow artifact | `keycloak-theme-for-kc-all-other-versions.jar` |
 
+> **Superseded:** runtime configuration and secrets now live in Secrets Manager as the JSON secrets
+> `/boma/production/api`, `/boma/production/keycloak` and `/boma/production/compose`, rendered on the host by
+> `infrastructure/scripts/render-secrets.py`. The SSM steps below are legacy; see
+> [live-preview.md](../../docs/deployment/live-preview.md) for the current redeployment path.
+
 To change a setting, edit the parameter, then redeploy (step 3). `render-env.sh` picks up the new value.
 
 ```bash
@@ -56,10 +61,17 @@ Containers are recreated in place, which causes a few seconds of downtime per re
 
 ## 4. Keycloak first login
 
-The admin console is at `https://auth.bomahoop.com/admin/` and only opens from the admin IP. Sign in with:
+The admin console is at `https://auth.bomahoop.com/admin/` (realm `master`). While bomahoop.com is a test
+environment it is open to all IPs; restore the nginx allow list before go-live (see [security.md](security.md)).
+Sign in with:
 
 - user `bootstrap-admin`
-- password from SSM `/boma/production/keycloak/KC_BOOTSTRAP_ADMIN_PASSWORD`
+- password: key `KC_BOOTSTRAP_ADMIN_PASSWORD` of the Secrets Manager secret `/boma/production/keycloak`
+
+```bash
+aws --profile boma-hoop --region eu-west-1 secretsmanager get-secret-value --secret-id /boma/production/keycloak \
+  --query SecretString --output text | jq -r .KC_BOOTSTRAP_ADMIN_PASSWORD
+```
 
 Then:
 

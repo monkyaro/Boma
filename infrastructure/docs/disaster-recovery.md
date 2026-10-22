@@ -72,8 +72,8 @@ The system status check alarm auto-recovers the instance on hardware failure. If
    ```
 3. Stop writers: `docker compose stop api celery-worker celery-beat keycloak` on the host.
 4. Choose one of two ways to switch:
-   - **Quick:** set `/boma/production/api/SQLALCHEMY_DATABASE_URI` and `/boma/production/keycloak/KC_DB_URL` to the new endpoint, then run `deploy.sh`. Afterwards, bring Terraform back in line during a planned window.
-   - **Terraform-clean:** rename the old instance to `boma-prod-db-old`, rename the restored one to `boma-prod-db`, update both SSM endpoints if they changed, run `terraform plan` (expect only tag or attribute drift), then run `deploy.sh`.
+   - **Quick:** set `SQLALCHEMY_DATABASE_URI` in the Secrets Manager secret `/boma/production/api` and `KC_DB_URL` in `/boma/production/keycloak` to the new endpoint, then redeploy as in [live-preview.md](../../docs/deployment/live-preview.md). Afterwards, bring Terraform back in line during a planned window.
+   - **Terraform-clean:** rename the old instance to `boma-prod-db-old`, rename the restored one to `boma-prod-db`, update both secret endpoints if they changed, run `terraform plan` (expect only tag or attribute drift), then redeploy.
 5. Keep the old instance until the restored data is confirmed. Then delete it with a final snapshot, which requires turning off deletion protection first.
 
 ### S3 object deleted or overwritten
