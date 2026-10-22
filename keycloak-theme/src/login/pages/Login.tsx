@@ -18,22 +18,6 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-const brandNode = (
-    <Box sx={{ textAlign: "center" }}>
-        <Typography
-            variant="h4"
-            sx={{ fontWeight: 900, color: "#0F4C5C", letterSpacing: 2, lineHeight: 1 }}
-        >
-            BOMA
-        </Typography>
-        <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "#E07A2F", letterSpacing: 4, fontSize: "0.75rem" }}
-        >
-            REAL ESTATE
-        </Typography>
-    </Box>
-);
 
 export default function Login(props: PageProps<Extract<KcContext, { pageId: "login.ftl" }>, I18n>) {
     const { kcContext, i18n, doUseDefaultCss, Template: BaseTemplate, classes } = props;
@@ -54,12 +38,11 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
             classes={classes}
             displayMessage={!messagesPerField.existsError("username", "password")}
             headerNode={msg("loginAccountTitle")}
-            logoNode={brandNode}
             displayInfo={realm.password && realm.registrationAllowed && !registrationDisabled}
             infoNode={
                 <span>
                     {msg("noAccount")}{" "}
-                    <Link href={url.registrationUrl} underline="hover" color="secondary" sx={{ fontWeight: 600 }}>
+                    <Link href={url.registrationUrl} underline="hover" color="secondary.dark" sx={{ fontWeight: 600 }}>
                         {msg("doRegister")}
                     </Link>
                 </span>
@@ -161,7 +144,7 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                         <Link
                             href={url.loginResetCredentialsUrl}
                             underline="hover"
-                            color="secondary"
+                            color="secondary.dark"
                             variant="body2"
                             sx={{ fontWeight: 500, ml: "auto" }}
                         >
@@ -180,9 +163,6 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                     disabled={isSubmitting}
                     sx={{
                         py: 1.5,
-                        background: "linear-gradient(90deg, #0F4C5C, #E07A2F)",
-                        "&:hover": { background: "linear-gradient(90deg, #0A3540, #B85F1F)" },
-                        boxShadow: "0 4px 14px rgba(27,107,58,0.4)",
                     }}
                 >
                     {msgStr("doLogIn")}

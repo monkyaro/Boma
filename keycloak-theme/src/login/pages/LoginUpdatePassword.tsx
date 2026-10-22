@@ -17,22 +17,6 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-const brandNode = (
-    <Box sx={{ textAlign: "center" }}>
-        <Typography
-            variant="h4"
-            sx={{ fontWeight: 900, color: "#0F4C5C", letterSpacing: 2, lineHeight: 1 }}
-        >
-            BOMA
-        </Typography>
-        <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "#E07A2F", letterSpacing: 4, fontSize: "0.75rem" }}
-        >
-            REAL ESTATE
-        </Typography>
-    </Box>
-);
 
 export default function LoginUpdatePassword(
     props: PageProps<Extract<KcContext, { pageId: "login-update-password.ftl" }>, I18n>
@@ -55,7 +39,6 @@ export default function LoginUpdatePassword(
             classes={classes}
             displayMessage={!messagesPerField.existsError("password", "password-confirm")}
             headerNode={msg("updatePasswordTitle")}
-            logoNode={brandNode}
         >
             <form action={url.loginAction} method="post">
                 {/* New password */}
@@ -141,9 +124,6 @@ export default function LoginUpdatePassword(
                         size="large"
                         sx={{
                             py: 1.5,
-                            background: "linear-gradient(90deg, #0F4C5C, #E07A2F)",
-                            "&:hover": { background: "linear-gradient(90deg, #0A3540, #B85F1F)" },
-                            boxShadow: "0 4px 14px rgba(27,107,58,0.4)",
                         }}
                     >
                         {msgStr("doSubmit")}

@@ -75,6 +75,8 @@ services:
       - '127.0.0.1:8180:8080'
     volumes:
       - ./local/boma-realm.json:/opt/keycloak/data/import/boma-realm.json:ro
+      # BOMA login theme; build it first with `npm run build-keycloak-theme` in keycloak-theme/
+      - ./keycloak-theme/dist_keycloak/keycloak-theme-for-kc-all-other-versions.jar:/opt/keycloak/providers/boma-theme.jar:ro
     depends_on:
       keycloak-db:
         condition: service_healthy

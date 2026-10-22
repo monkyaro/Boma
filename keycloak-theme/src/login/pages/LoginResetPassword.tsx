@@ -6,22 +6,6 @@ import type { BomaTemplateProps } from "../Template";
 import { Box, Button, Link, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-const brandNode = (
-    <Box sx={{ textAlign: "center" }}>
-        <Typography
-            variant="h4"
-            sx={{ fontWeight: 900, color: "#0F4C5C", letterSpacing: 2, lineHeight: 1 }}
-        >
-            BOMA
-        </Typography>
-        <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "#E07A2F", letterSpacing: 4, fontSize: "0.75rem" }}
-        >
-            REAL ESTATE
-        </Typography>
-    </Box>
-);
 
 export default function LoginResetPassword(
     props: PageProps<Extract<KcContext, { pageId: "login-reset-password.ftl" }>, I18n>
@@ -41,7 +25,6 @@ export default function LoginResetPassword(
             classes={classes}
             displayMessage={!messagesPerField.existsError("username")}
             headerNode={msg("emailForgotTitle")}
-            logoNode={brandNode}
         >
             <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
                 {realm.duplicateEmailsAllowed
@@ -79,9 +62,6 @@ export default function LoginResetPassword(
                     size="large"
                     sx={{
                         py: 1.5,
-                        background: "linear-gradient(90deg, #0F4C5C, #E07A2F)",
-                        "&:hover": { background: "linear-gradient(90deg, #0A3540, #B85F1F)" },
-                        boxShadow: "0 4px 14px rgba(27,107,58,0.4)",
                         mb: 2,
                     }}
                 >
@@ -92,7 +72,7 @@ export default function LoginResetPassword(
                     <Link
                         href={url.loginUrl}
                         underline="hover"
-                        color="secondary"
+                        color="secondary.dark"
                         variant="body2"
                         sx={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 0.5 }}
                     >

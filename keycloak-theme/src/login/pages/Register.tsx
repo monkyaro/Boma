@@ -11,28 +11,11 @@ import {
     InputAdornment,
     Link,
     TextField,
-    Typography,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-const brandNode = (
-    <Box sx={{ textAlign: "center" }}>
-        <Typography
-            variant="h4"
-            sx={{ fontWeight: 900, color: "#0F4C5C", letterSpacing: 2, lineHeight: 1 }}
-        >
-            BOMA
-        </Typography>
-        <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "#E07A2F", letterSpacing: 4, fontSize: "0.75rem" }}
-        >
-            REAL ESTATE
-        </Typography>
-    </Box>
-);
 
 type RegisterKcContext = Extract<KcContext, { pageId: "register.ftl" }>;
 
@@ -70,7 +53,6 @@ export default function Register(
             classes={classes}
             displayMessage={true}
             headerNode={msg("registerTitle")}
-            logoNode={brandNode}
         >
             <form
                 onSubmit={() => setIsSubmitting(true)}
@@ -187,9 +169,6 @@ export default function Register(
                     disabled={isSubmitting}
                     sx={{
                         py: 1.5,
-                        background: "linear-gradient(90deg, #0F4C5C, #E07A2F)",
-                        "&:hover": { background: "linear-gradient(90deg, #0A3540, #B85F1F)" },
-                        boxShadow: "0 4px 14px rgba(27,107,58,0.4)",
                     }}
                 >
                     {msgStr("doRegister")}
@@ -199,7 +178,7 @@ export default function Register(
                     <Link
                         href={url.loginUrl}
                         underline="hover"
-                        color="secondary"
+                        color="secondary.dark"
                         variant="body2"
                         sx={{ fontWeight: 500, display: "flex", alignItems: "center", gap: 0.5 }}
                     >

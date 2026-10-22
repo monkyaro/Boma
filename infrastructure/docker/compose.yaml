@@ -134,8 +134,9 @@ services:
       KC_METRICS_ENABLED: "true"
       JAVA_OPTS_APPEND: -XX:MaxRAMPercentage=70
     volumes:
-      # BOMA login theme built by the keycloak-theme workflow (theme name "boma")
-      - ./keycloak/providers:/opt/keycloak/providers:ro
+      # BOMA login theme built by the keycloak-theme workflow (theme name "boma").
+      # Absolute path: deploy.sh uploads it here, outside the per-release directories.
+      - /opt/boma/keycloak/providers:/opt/keycloak/providers:ro
     healthcheck:
       # Management port 9000 is only reachable inside the container network.
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]

@@ -11,9 +11,11 @@ import {
     Typography,
     Alert,
     CircularProgress,
+    Link,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import Brand from "./Brand";
 
 const bomaTheme = createTheme({
     palette: {
@@ -22,13 +24,21 @@ const bomaTheme = createTheme({
         background: { default: "#f2f6f7" },
     },
     typography: {
-        fontFamily: "'Inter', 'Roboto', sans-serif",
+        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     },
     shape: { borderRadius: 10 },
     components: {
         MuiButton: {
             styleOverrides: {
-                root: { textTransform: "none", fontWeight: 600 },
+                root: {
+                    textTransform: "none",
+                    fontWeight: 600,
+                    "&.MuiButton-containedPrimary": { boxShadow: "none" },
+                    "&.MuiButton-containedPrimary:hover": {
+                        backgroundColor: "#0A3540",
+                        boxShadow: "0 6px 16px rgba(10,53,64,0.25)",
+                    },
+                },
             },
         },
         MuiOutlinedInput: {
@@ -70,7 +80,8 @@ export default function Template(props: BomaTemplateProps) {
         children,
     } = props;
 
-    const { message } = kcContext;
+    const { message, client } = kcContext;
+    const homeUrl = "baseUrl" in client ? client.baseUrl : undefined;
 
     useEffect(() => {
         document.title = "BOMA Real Estate";
@@ -95,8 +106,13 @@ export default function Template(props: BomaTemplateProps) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "linear-gradient(135deg, #0A3540 0%, #0F4C5C 60%, #1C6E80 100%)",
-                    p: 2,
+                    flexDirection: "column",
+                    gap: 2,
+                    backgroundColor: "#0F4C5C",
+                    backgroundImage:
+                        "radial-gradient(ellipse at top right, #39818a 0%, transparent 60%), radial-gradient(ellipse at bottom left, #0A3540 0%, transparent 55%)",
+                    px: 2,
+                    py: 4,
                 }}
             >
                 <Card
@@ -104,40 +120,25 @@ export default function Template(props: BomaTemplateProps) {
                     sx={{
                         width: "100%",
                         maxWidth: 460,
-                        borderRadius: 3,
-                        overflow: "visible",
-                        boxShadow: "0 20px 60px rgba(0,0,0,0.30)",
+                        borderRadius: 4,
+                        overflow: "hidden",
+                        boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
                     }}
                 >
-                    {/* Top accent bar — teal to terracotta */}
-                    <Box
-                        sx={{
-                            height: 5,
-                            background: "linear-gradient(90deg, #0F4C5C, #E07A2F)",
-                            borderRadius: "10px 10px 0 0",
-                        }}
-                    />
-
-                    <CardContent sx={{ p: 4 }}>
+                    <Box sx={{ height: 4, bgcolor: "#E07A2F" }} />
+                    <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
                         {/* Branding / logo */}
-                        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-                            {logoNode ?? (
-                                <Typography
-                                    variant="h4"
-                                    sx={{ fontWeight: 900, color: "#0F4C5C", letterSpacing: 2 }}
-                                >
-                                    BOMA
-                                </Typography>
-                            )}
+                        <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+                            {logoNode ?? <Brand />}
                         </Box>
 
                         {/* Page title */}
                         {headerNode && (
                             <Typography
                                 variant="h5"
-                                color="primary"
+                                component="h1"
                                 align="center"
-                                sx={{ fontWeight: 700, letterSpacing: "-0.3px", mb: 3 }}
+                                sx={{ fontWeight: 700, fontSize: "1.35rem", color: "#14262B", mb: 3 }}
                             >
                                 {headerNode}
                             </Typography>
@@ -175,6 +176,16 @@ export default function Template(props: BomaTemplateProps) {
                         )}
                     </CardContent>
                 </Card>
+
+                {homeUrl && (
+                    <Link
+                        href={homeUrl}
+                        underline="hover"
+                        sx={{ color: "rgba(255,255,255,0.85)", fontSize: "0.875rem" }}
+                    >
+                        ← Back to BOMA
+                    </Link>
+                )}
             </Box>
         </ThemeProvider>
     );

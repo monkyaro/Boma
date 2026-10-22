@@ -2,6 +2,7 @@
   "realm": "boma",
   "enabled": true,
   "displayName": "BOMA",
+  "loginTheme": "boma",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
@@ -43,6 +44,7 @@
   "clients": [
     {
       "clientId": "boma-web",
+      "baseUrl": "http://localhost:3000/",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
