@@ -1,4 +1,4 @@
-import os
+import uuid
 import pytest
 from dotenv import load_dotenv
 from sqlalchemy import text
@@ -22,7 +22,8 @@ def app():
         _db.drop_all()
         _db.session.execute(text("DROP TABLE IF EXISTS alembic_version"))
         _db.session.commit()
-        _db.create_all()
+        from flask_migrate import upgrade
+        upgrade()
         yield app
         _db.session.remove()
         _db.drop_all()
@@ -39,7 +40,7 @@ def client(app):
 def token_claims(monkeypatch):
     """Bypass JWKS verification: any bearer token decodes to these claims."""
     claims = {
-        "sub": "00000000-0000-0000-0000-000000000001",
+        "sub": str(uuid.uuid4()),
         "preferred_username": "owner1",
         "realm_access": {"roles": ["owner"]},
     }

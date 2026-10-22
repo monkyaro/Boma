@@ -20,6 +20,15 @@ class Listing(db.Model):
     district = db.Column(db.String(100))
     location = db.Column(Geography(geometry_type="POINT", srid=4326))
     status = db.Column(db.String(20), nullable=False, default="draft")
+    verification_status = db.Column(db.String(20), nullable=False, default="UNVERIFIED", server_default="UNVERIFIED")
+    version = db.Column(db.Integer, nullable=False, default=1, server_default="1")
+    region_code = db.Column(db.ForeignKey("regions.code"))
+    district_code = db.Column(db.ForeignKey("districts.code"))
+    ward_code = db.Column(db.ForeignKey("wards.code"))
+    __table_args__ = (
+        db.CheckConstraint("verification_status IN ('UNVERIFIED', 'VERIFIED')", name="ck_listing_verification"),
+        db.CheckConstraint("price >= 0", name="ck_listing_price"),
+    )
     created_at = db.Column(db.DateTime(timezone=True),
                            default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True),

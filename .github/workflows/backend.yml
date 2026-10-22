@@ -56,6 +56,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-dev.txt pip-audit
 
+      - name: Lint and check typed adapter contracts
+        run: ruff check app tests && mypy
+
       - name: Run tests
         run: python -m pytest -q
 

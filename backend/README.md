@@ -53,6 +53,9 @@ Never commit `.env` files or keys.
 
 `POST /onboarding/owner-identity` (empty JSON body) and `GET /onboarding/owner-identity`
 require a bearer token and operate only on the caller's initial identity case.
-Submission is idempotent and does not grant a role. No staff approval or document
-upload endpoints are enabled yet. See [local API examples](../docs/local-development.md).
-Public listing DTOs omit owner IDs and precise coordinates; only owner tokens create drafts.
+Submission is idempotent and does not grant a Keycloak role. Scoped MFA-protected staff review is implemented; document upload/public release remains gated. See [local API examples](../docs/local-development.md).
+Public listing DTOs omit owner IDs and precise coordinates; owner tokens or accounts with an existing owner application can prepare drafts.
+
+## Expanded workflows
+
+Geography, staff scope/MFA, review decisions, inquiries/messages/appointments and notifications live in `app/workspace/`. `app/deals/` handles owner-paid negotiated commissions; `app/bookings/` handles availability and request holds; `app/media/` is a disabled-by-default private quarantine adapter. `app/payments/` is an isolated sandbox callback adapter with no live money movement. See ../docs/api.md and ../docs/release-status.md. Run `ruff check app tests` and `mypy` in addition to integration/migration checks. The strict mypy target currently covers the typed payment adapter contract, not the entire dynamic Flask/ORM app.

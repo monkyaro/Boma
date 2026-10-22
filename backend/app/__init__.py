@@ -1,5 +1,6 @@
 import logging
 from flask import Flask, request
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash, generate_password_hash
 import sentry_sdk
@@ -10,6 +11,11 @@ from .commands import enable_postgis
 from .health.health_api import health_ns
 from .listings.listing_api import listing_ns
 from .onboarding.onboarding_api import onboarding_ns
+from .workspace.workspace_api import workspace_ns
+from .deals.deals_api import deals_ns
+from .bookings.bookings_api import bookings_ns
+from .media.media_api import media_ns
+from .payments.payments_api import payments_ns
 from . import model  # noqa: F401  registers models for migrations
 
 
@@ -33,6 +39,9 @@ def create_app(config_file="setting.py", config_overrides=None):
 
     app = Flask(__name__)
     app.config.from_pyfile(config_file)
+    app.config.setdefault("MAX_CONTENT_LENGTH", 1024 * 1024)
+    if app.config.get("MAX_CONTENT_LENGTH") is None:
+        app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
     if config_overrides:
         app.config.update(config_overrides)
 
@@ -62,6 +71,11 @@ def create_app(config_file="setting.py", config_overrides=None):
     api.add_namespace(health_ns)
     api.add_namespace(listing_ns)
     api.add_namespace(onboarding_ns)
+    api.add_namespace(workspace_ns)
+    api.add_namespace(deals_ns)
+    api.add_namespace(bookings_ns)
+    api.add_namespace(media_ns)
+    api.add_namespace(payments_ns)
 
     @app.teardown_request
     def teardown_request(exception=None):
@@ -73,5 +87,32 @@ def create_app(config_file="setting.py", config_overrides=None):
             if not app.config["SWAGGER_UI_ENABLED"]:
                 return {"message": "Not found"}, 404
             return auth.login_required(lambda: None)()
+
+    @api.errorhandler(DBAPIError)
+    @app.errorhandler(DBAPIError)
+    def database_failure(error):
+        db.session.rollback()
+        # Never log DB exception text, SQL parameters or failed-row detail containing PII.
+        app.logger.warning("Database request failed (%s)", type(error).__name__)
+        return {"message": "Request conflicts with stored data" if isinstance(error, IntegrityError)
+                else "Database is temporarily unavailable"}, 409 if isinstance(error, IntegrityError) else 503
+
+    original_log_exception = app.log_exception
+
+    def safe_log_exception(exc_info):
+        if isinstance(exc_info[1], DBAPIError):
+            app.logger.warning("Database failure details suppressed")
+        else:
+            original_log_exception(exc_info)
+
+    app.log_exception = safe_log_exception
+
+    @app.after_request
+    def response_security(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        if request.headers.get("Authorization") or request.path.startswith(("/workspace", "/onboarding", "/deals", "/media")):
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     return app, celery

@@ -10,6 +10,7 @@ class IdentityVerificationCase(db.Model):
     case_id = db.Column(db.String(36), primary_key=True,
                         default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), nullable=False, unique=True)
+    residence_region_code = db.Column(db.ForeignKey("regions.code"))
     status = db.Column(db.String(20), nullable=False, default="pending")
     created_at = db.Column(db.DateTime(timezone=True), nullable=False,
                            default=lambda: datetime.now(timezone.utc))

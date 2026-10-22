@@ -7,6 +7,7 @@ SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENGINE_OPTIONS = {
     "pool_pre_ping": True,
+    "hide_parameters": True,
     "pool_recycle": 280,
     "pool_size": 5,
     "max_overflow": 10,
@@ -43,3 +44,18 @@ MEDIA_S3_BUCKET = os.environ.get("MEDIA_S3_BUCKET")
 MEDIA_S3_UPLOAD_URL_TTL = int(os.environ.get("MEDIA_S3_UPLOAD_URL_TTL", 600))
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
+
+# Proposed physical-viewing policy stays disabled until explicitly approved.
+VIEWING_POLICY_APPROVED = os.environ.get("VIEWING_POLICY_APPROVED", "false").lower() == "true"
+# No numeric demand policy is assumed; empty disables automatic review task creation.
+VERIFICATION_INQUIRY_THRESHOLD = int(os.environ.get("VERIFICATION_INQUIRY_THRESHOLD", "0"))
+
+MEDIA_UPLOADS_ENABLED = os.environ.get("MEDIA_UPLOADS_ENABLED", "false").lower() == "true"
+
+# Optional private-network JWKS endpoint; issuer validation always uses KEYCLOAK_ISSUER.
+KEYCLOAK_JWKS_URL = os.environ.get("KEYCLOAK_JWKS_URL")
+
+API_WRITE_RATE_PER_MINUTE = int(os.environ.get("API_WRITE_RATE_PER_MINUTE", "60"))
+
+PAYMENT_SANDBOX_ENABLED = os.environ.get("PAYMENT_SANDBOX_ENABLED", "false").lower() == "true"
+PAYMENT_SANDBOX_SIGNING_SECRET = os.environ.get("PAYMENT_SANDBOX_SIGNING_SECRET")
