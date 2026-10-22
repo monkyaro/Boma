@@ -64,3 +64,9 @@ Incremental spend remains within the approved low-usage allowance: three secrets
 
 - Web only: `boma/web:c3aa9e7c16c3` (commit `c3aa9e7`), same host-build, Trivy gate and `WEB_TAG` switch as above; previous web `4c473a30aa2c`.
 - Rollback: `cp /opt/boma/current/.env.bak-before-web-c3aa9e7c16c3 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps web`.
+
+## Geography codes and renaming — 2026-10-22
+
+- API and web: `boma/api:0977dd918755`, `boma/web:0977dd918755` (commit `0977dd9`), built natively on the host; Trivy HIGH/CRITICAL fixable gate passed for both. No migrations. Previous: api `1d93d01e6616`, web `c3aa9e7c16c3`.
+- Switched `API_TAG`/`WEB_TAG` and recreated api, celery-worker, celery-beat, mail-relay and web; health checks, nginx probes and public checks passed; anonymous geography PATCH returns 401.
+- Rollback: `cp /opt/boma/current/.env.bak-before-0977dd918755 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps api celery-worker celery-beat mail-relay web`.
