@@ -45,3 +45,16 @@ The owner specification is tracked in [requirements](docs/requirements.md),
 Use [isolated local development](docs/local-development.md) for this host.
 Infrastructure descriptions above are existing repository claims, pending read-only
 verification; they do not authorize resource creation or deployment.
+
+## Run the expanded app locally
+
+```sh
+python3 local/init.py
+docker compose -f compose.dev.yaml up -d --build
+```
+
+Web: http://localhost:3000 · API: http://localhost:8100 · local Keycloak: http://localhost:8180.
+The local database contains no fabricated real listings/geography or bundled accounts.
+See [authentication](docs/authentication.md) for provider/staff-MFA setup,
+[API contracts](docs/api.md), [verification results](docs/progress.md), and
+[remaining release gates](docs/release-status.md). Mobile: [apps/mobile](apps/mobile/README.md).

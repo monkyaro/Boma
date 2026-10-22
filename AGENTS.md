@@ -68,4 +68,9 @@ npm run build-keycloak-theme
 
 ## Owner master specification (2026-10-22)
 
-Read `docs/requirements.md`, `docs/decisions.md` and `docs/implementation-plan.md` for the owner-supplied `cod` specification. Preserve the existing directory layout. New listing creation permits `owner`, not the legacy `agent` role. Identity cases do not grant roles; officer review requires geographic scoping, staff MFA and audit history before it is enabled. Treat existing infrastructure resource and budget statements as unverified until owner-authorized read-only discovery. Target runtime secrets are Secrets Manager/instance roles; existing SSM configuration requires a reviewed transition. Never inspect local credential files or production data as a shortcut to discovery.
+Read `docs/requirements.md`, `docs/decisions.md` and `docs/implementation-plan.md` for the owner-supplied `cod` specification. Preserve the existing directory layout. New listing drafts permit owners or local owner applicants, never the legacy `agent` role alone. Identity cases grant no Keycloak roles; officer review enforces geographic scoping, staff MFA and audit history. Treat existing infrastructure resource and budget statements as unverified until owner-authorized read-only discovery. Target runtime secrets are Secrets Manager/instance roles; existing SSM configuration requires a reviewed transition. Never inspect local credential files or production data as a shortcut to discovery.
+
+
+## Expanded implementation
+
+`docs/api.md` is the workflow contract; `docs/release-status.md` tracks unfinished release gates. Owner applicants may prepare drafts using their local identity case; approved cases authorize publishing without silent Keycloak role elevation. Staff MFA requires vetted `mfa` or both `pwd` and `otp`, never a primary OTP alone. Keep media/payment/push integrations fail-closed until tested configuration and required policies exist. Mobile is in `apps/mobile` (read its README); run typecheck and native bundle exports. Backend checks also include Ruff and strict mypy on the typed adapter contract. Do not bypass dependency-audit gates to obtain a green build.

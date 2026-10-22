@@ -9,6 +9,7 @@ x-api: &api
     CELERY_RESULT_BACKEND: redis://redis:6379/1
     KEYCLOAK_ISSUER: http://localhost:8180/realms/boma
     KEYCLOAK_AUDIENCE: boma-api
+    KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/boma/protocol/openid-connect/certs
     CORS_ORIGINS: http://localhost:3000
   depends_on:
     postgres:
@@ -46,6 +47,49 @@ services:
   worker:
     <<: *api
     command: celery -A run.celery worker --loglevel=info
+  keycloak-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${BOMA_LOCAL_DB_PASSWORD:-local-keycloak-only}
+    volumes:
+      - keycloak-database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U keycloak]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: [start-dev, --import-realm]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${BOMA_LOCAL_DB_PASSWORD:-local-keycloak-only}
+      KC_HOSTNAME: http://localhost:8180
+      KC_BOOTSTRAP_ADMIN_USERNAME: local-admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${BOMA_LOCAL_ADMIN_PASSWORD:-}
+    ports:
+      - '127.0.0.1:8180:8080'
+    volumes:
+      - ./local/boma-realm.json:/opt/keycloak/data/import/boma-realm.json:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8100
+        NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8180
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      - api
   tests:
     <<: *api
     profiles: [test]
@@ -60,3 +104,4 @@ services:
 volumes:
   database:
   redis:
+  keycloak-database:

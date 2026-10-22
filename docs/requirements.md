@@ -17,7 +17,7 @@ Source: owner-supplied `../cod` (2026-10-22). This document governs new work; le
 ## Initial acceptance criteria
 
 - Existing starter code remains runnable; documented local services are isolated from other host projects.
-- Only owner tokens create listing drafts; legacy agent tokens are denied.
+- Owner tokens or accounts with local owner-onboarding cases may prepare drafts; neither legacy agent roles nor an application grants staff privileges. Publishing requires approved identity.
 - Anonymous listing responses omit owner identifiers and exact coordinates.
 - Authenticated accounts may request owner verification without creating a duplicate account or granting themselves owner privileges. Repeated requests return the same pending case.
 - Identity review/approval is unavailable until geographic assignments, MFA assurance and immutable decision auditing exist.

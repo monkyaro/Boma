@@ -1,31 +1,52 @@
-# Isolated local development
+# Local development
 
-Run from the repository root. Docker/Compose is required. This configuration does not read AWS credentials or contact production services. PostgreSQL/Redis are internal-only; the API binds loopback port 8100. Its project name and volumes are separate from other applications on this host. Credentials in this file are disposable local defaults.
+From repository root:
 
 ```sh
-docker compose -f compose.dev.yaml up -d --build postgres redis api worker
+python3 local/init.py
+docker compose -f compose.dev.yaml up -d --build
 curl http://localhost:8100/health/ready
-# Create a disposable test database once, then run integration tests and migration drift checks:
+# Create the disposable test database once:
 docker compose -f compose.dev.yaml exec postgres createdb -U boma boma_test
+# Integration tests and migration drift:
 docker compose -f compose.dev.yaml --profile test run --rm tests
-# Stop without deleting persisted data:
+# Stop without deleting data:
 docker compose -f compose.dev.yaml down
 ```
 
-The API container entrypoint applies migrations before serving. No Keycloak realm or delivery provider is configured automatically: authenticated local calls require a separately configured development Keycloak with issuer/audience matching the API. Tests mock JWT decoding only; no production credentials are needed. Staff approval, passwordless adapters, public publishing, UI onboarding and push integrations remain future increments. The existing frontend retains its own development instructions; do not point it at production to test these APIs.
+Web: http://localhost:3000. API: http://localhost:8100. Local Keycloak: http://localhost:8180 (admin username `local-admin`; randomly generated local password stays in ignored `.env`). Do not print/share the password or reuse local credentials in production. `local/init.py` creates owner-readable credentials without overwriting an existing file. Existing Keycloak databases retain their initial credentials; changing `.env` does not reset them.
 
-## Initial owner onboarding contract
+This Compose project has separate networks/volumes from other host applications. Databases/Redis are internal-only and published app ports bind loopback. Keycloak has its own PostgreSQL database. Browser issuer uses localhost while the API fetches JWKS over the private Compose network; issuer validation is unchanged. Local development uses HTTP loopback only; deployed environments require HTTPS and reviewed hostnames.
 
-Send a valid bearer access token with the approved API audience. Existing accounts of any customer role can request verification; owner privileges require a later audited approval flow.
+The realm blueprint defines public PKCE clients, audience and AMR mappers, role names and no bundled users. It initializes a missing realm; modifying the import file does not overwrite an existing realm. Staff authentication flows/MFA and development accounts need explicit local identity administration. Self-registration is disabled until the passwordless provider integration is supplied/tested (authentication.md). No production realm, account, secret or data is contacted.
 
-```http
-POST /onboarding/owner-identity
-Authorization: Bearer <development-token>
-Content-Type: application/json
+Production data is not seeded. Load approved Tanzania geography via national-admin workflows, then onboard accounts/properties normally. Tests use isolated synthetic geography and properties in `boma_test`; those fixtures are never displayed as real listings.
 
-{}
+## App checks
+
+```sh
+cd frontend
+npm ci
+npm run lint
+npm run typecheck
+npm test
+npx playwright install chromium
+npm run test:e2e
+npm run build
 ```
 
-Returns 201 with `case_id`, `status: pending`, `created_at`; repeats return 200 with the same case. `GET /onboarding/owner-identity` returns only the current account's case or 404. Both require authentication (401). Payloads specifying identity, status or roles fail (400). No staff decision endpoint is exposed. Owners can still create drafts via `POST /listings`; buyer and legacy agent tokens receive 403. Public listing results omit owner IDs and exact location.
+Browser tests mock public API responses; they exercise search, verification disclosure and failure states. Backend tests separately enforce role, geography, privacy, state transitions and concurrency. Real provider login/registration/MFA and physical-device push remain release gates.
 
-For local migration rollback on a disposable database only: `flask --app run db downgrade d37dde63a5f3`. This drops identity cases. Production records must be preserved; rollback there needs an approved migration plan.
+```sh
+cd apps/mobile
+npm ci
+npm run typecheck
+npx expo export --platform android --platform ios --output-dir dist
+npx expo start
+```
+
+See apps/mobile/README.md for native redirect/network configuration. No APK/IPA, app-store submission or physical-device execution is claimed by a JS bundle export.
+
+## Rollback
+
+Revert the matching code commits for application rollback; do not downgrade production data by default. All five new migrations have forward/backward steps. On the empty disposable `boma_test` database, downgrade to `c9b41f686e67`, then upgrade/check again to test the complete rollback chain. This removes workflow/media/device/sandbox data and must never run on production. Audit and financial history is deliberately immutable in normal operation; test fixtures may drop only the guarded disposable test schema.

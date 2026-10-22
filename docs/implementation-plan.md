@@ -16,3 +16,8 @@ Every increment includes migrations when needed, allowed/forbidden authorization
 ## Local verification and rollback
 
 See local-development.md. Stop the isolated Compose project without removing volumes. Revert application commits to roll back code. For the initial owner-case migration, downgrade only on a disposable development database; production case records must be preserved and require a separately approved rollback plan. Never edit the existing base migration.
+
+
+## Current implementation evidence
+
+The expanded increment implements portions of B–G and a full local web/API/worker/auth stack. It is not a completion of all milestones. See release-status.md for a per-module implemented/remaining matrix, api.md for contracts, authentication.md for identity integration gates, and progress.md for executed verification. No H deployment is authorized or performed.
