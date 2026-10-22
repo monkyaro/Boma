@@ -70,3 +70,9 @@ Incremental spend remains within the approved low-usage allowance: three secrets
 - API and web: `boma/api:0977dd918755`, `boma/web:0977dd918755` (commit `0977dd9`), built natively on the host; Trivy HIGH/CRITICAL fixable gate passed for both. No migrations. Previous: api `1d93d01e6616`, web `c3aa9e7c16c3`.
 - Switched `API_TAG`/`WEB_TAG` and recreated api, celery-worker, celery-beat, mail-relay and web; health checks, nginx probes and public checks passed; anonymous geography PATCH returns 401.
 - Rollback: `cp /opt/boma/current/.env.bak-before-0977dd918755 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps api celery-worker celery-beat mail-relay web`.
+
+## Staff accounts release — 2026-10-22
+
+- API and web: `boma/api:beb45bce8565`, `boma/web:beb45bce8565` (commit `beb45bc`), host-built, Trivy gate passed for both. No migrations. Previous: `0977dd918755` for both.
+- Staff endpoints are deployed but fail closed (503) until configured: the `boma-admin-api` client does not exist yet because the Keycloak bootstrap admin password stored in `/boma/production/keycloak` is no longer valid (`invalid_grant`), so `keycloak-admin-api-client.sh` could not run. Pending owner action: create the client (script with a working master admin, or admin console), then add `KEYCLOAK_ADMIN_URL=http://keycloak:8080` and `KEYCLOAK_ADMIN_CLIENT_SECRET` to `/boma/production/api` and re-render `api.env`.
+- Rollback: `cp /opt/boma/current/.env.bak-before-beb45bce8565 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps api celery-worker celery-beat mail-relay web`.
