@@ -94,11 +94,11 @@ function Operations({ geography }: { geography?: Geography }) {
 }
 
 export default function Dashboard() {
-  const { ready, user, login, hasRole } = useAuth();
+  const { ready, user, login, register, hasRole } = useAuth();
   const [tab, setTab] = useState("requests");
   const geography = useQuery({ queryKey: ["geography"], enabled: !!user, queryFn: async () => (await api.get<Geography>("/workspace/geography")).data });
   if (!ready) return <p role="status">Loading your workspace…</p>;
-  if (!user) return <section className="panel"><h1 className="text-2xl font-semibold">Your BOMA workspace</h1><p className="my-4 text-black/60">Sign in to save properties, contact a BOMA officer, or list your property.</p><button className="button" onClick={login}>Sign in</button></section>;
+  if (!user) return <section className="panel"><h1 className="text-2xl font-semibold">Your BOMA workspace</h1><p className="my-4 text-black/60">Sign in to save properties, contact a BOMA officer, or list your property.</p><div className="flex flex-wrap items-center gap-4"><button className="button" onClick={login}>Sign in</button><p className="text-sm text-black/60">New to BOMA? <button type="button" className="font-semibold text-brand underline-offset-2 hover:underline" onClick={register}>Create a free account</button></p></div></section>;
   const staff = hasRole("officer", "regional_supervisor", "national_admin");
   const tabs = [["requests", "My requests"], ["owner", "My properties"], ["deals", "Transactions"], ["notifications", "Notifications"], ...(staff ? [["operations", "Officer workspace"]] : [])];
   return <><p className="eyebrow text-accent">YOUR NEXT CHAPTER STARTS HERE</p><h1 className="mt-2 text-3xl font-semibold">Welcome{user.name ? `, ${user.name}` : " to BOMA"}</h1><p className="mt-2 text-black/60">Your properties, conversations and next steps, together.</p><nav className="my-7 flex flex-wrap gap-2" aria-label="Workspace sections">{tabs.map(([value, label]) => <button key={value} className={`button ${tab === value ? "" : "secondary"}`} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</nav>

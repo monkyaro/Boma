@@ -33,9 +33,9 @@ function ShortStayRequest({ listingId }: { listingId: string }) {
   </div>;
 }
 export default function PropertyActions({ listingId, shortStay }: { listingId: string; shortStay: boolean }) {
-  const { ready, user, login } = useAuth();
+  const { ready, user, login, register } = useAuth();
   if (!ready) return <p role="status">Loading…</p>;
-  if (!user) return <div className="panel mt-6"><h2 className="text-lg font-semibold">Interested in this property?</h2><p className="my-3 text-sm text-black/60">Sign in to save it or speak with a BOMA officer.</p><button className="button" onClick={login}>Sign in to continue</button></div>;
+  if (!user) return <div className="panel mt-6"><h2 className="text-lg font-semibold">Interested in this property?</h2><p className="my-3 text-sm text-black/60">Sign in to save it or speak with a BOMA officer.</p><div className="flex flex-wrap items-center gap-4"><button className="button" onClick={login}>Sign in to continue</button><p className="text-sm text-black/60">New to BOMA? <button type="button" className="font-semibold text-brand underline-offset-2 hover:underline" onClick={register}>Create a free account</button></p></div></div>;
   return <aside className="panel mt-6"><h2 className="text-xl font-semibold">Let BOMA guide the next step</h2><p className="my-3 text-sm text-black/60">An authorized officer handles your questions, viewing and negotiations. Owner contact and exact locations remain private.</p>
     <div className="grid gap-3 sm:grid-cols-3"><ActionForm path={`/listings/${listingId}/favorite`} label="Save property" /><ActionForm path="/workspace/inquiries" fixed={{ listing_id: listingId, kind: "inquiry" }} label="Ask BOMA" /><ActionForm path="/workspace/inquiries" fixed={{ listing_id: listingId, kind: "viewing" }} label="Request guided viewing" /></div>
     {shortStay && <ShortStayRequest listingId={listingId} />}

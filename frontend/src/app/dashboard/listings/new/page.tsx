@@ -15,7 +15,7 @@ const PROPERTY_TYPES: PropertyType[] = ["house", "apartment", "land", "commercia
 const inputClass = "mt-1 w-full rounded-md border border-black/15 bg-white px-3 py-2";
 
 export default function NewListingPage() {
-  const { ready, user, login, hasRole } = useAuth();
+  const { ready, user, login, register, hasRole } = useAuth();
   const createListing = useCreateListing();
   const geography = useQuery({ queryKey: ["geography"], queryFn: async () => (await api.get<Geography>("/workspace/geography")).data });
   const identity = useQuery({ queryKey: ["identity-draft"], enabled: !!user, queryFn: async () => {
@@ -35,9 +35,17 @@ export default function NewListingPage() {
   if (!ready) return <p className="text-black/60">Loading…</p>;
   if (!user) {
     return (
-      <button onClick={login} className="rounded-md bg-brand px-4 py-2 font-semibold text-white">
-        Sign in to list a property
-      </button>
+      <div className="flex flex-wrap items-center gap-4">
+        <button onClick={login} className="rounded-md bg-brand px-4 py-2 font-semibold text-white">
+          Sign in to list a property
+        </button>
+        <p className="text-sm text-black/60">
+          New to BOMA?{" "}
+          <button type="button" className="font-semibold text-brand underline-offset-2 hover:underline" onClick={register}>
+            Create a free account
+          </button>
+        </p>
+      </div>
     );
   }
   if (identity.isPending && !hasRole("owner")) return <p>Checking owner onboarding…</p>;

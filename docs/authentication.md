@@ -8,9 +8,15 @@ A primary email/WhatsApp OTP alone is not accepted as staff MFA. For staff, conf
 
 Owner identity approval is a local business capability, distinct from authentication/property verification. An account can open an identity case and prepare drafts while pending. An approved local case authorizes publishing without requiring a second account or silently elevating Keycloak staff roles. Staff roles are granted through the identity administration process, never a customer endpoint.
 
+## Interim customer registration (owner decision, 2026-10-22)
+
+While the AWS deployment is a test environment awaiting owner acceptance, customers self-register with Keycloak's email + password form: email is the username, the email address must be verified before first sign-in, passwords need at least 10 characters and must not equal the email, and forgotten-password reset by email is enabled. New accounts receive only the default `buyer` role; owner and staff rights still come from the processes above. The web header and signed-out prompts link to Keycloak's registration page.
+
+Keycloak sends account emails over SMTP to the internal `mail-relay` service (`infrastructure/docker/mail-relay/ses_relay.py`), which sends through the SES API with the EC2 instance role (only `*@bomahoop.com` senders; no SMTP keys or IAM users). The relay publishes no port and logs no addresses or message content. Locally, `mailpit` catches the emails at http://localhost:8025. While SES remains in sandbox, mail reaches only SES-verified recipient addresses (200/day); SES production access is required before outside testers can register.
+
 ## Activation work still required before launch
 
-Email magic link/OTP and WhatsApp OTP/fallback need a reviewed Keycloak authenticator/broker integration and approved delivery providers. No provider approval or passwordless activation is claimed. Self-service registration stays disabled in the local blueprint until that integration is tested; existing development accounts can use the local realm. Customer registration must not require officer approval; officer identity checks apply only to property owners.
+Email magic link/OTP and WhatsApp OTP/fallback need a reviewed Keycloak authenticator/broker integration and approved delivery providers. No provider approval or passwordless activation is claimed. The interim email + password registration above stays in place until that integration is tested. Customer registration must not require officer approval; officer identity checks apply only to property owners.
 
 Required delivery adapter contract: generate/send/verify through the chosen Keycloak flow, short-lived single-use challenges, hashed challenge storage, destination/account/IP throttles, resend limits, no account enumeration, no OTP logging, verified email/normalized +255 phone binding, provider signature verification and opted-in fallback. Production secrets come from managed secret storage. Prove replay/expiry/fallback and account-linking behavior in a sandbox before enabling registration.
 

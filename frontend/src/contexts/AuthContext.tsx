@@ -14,6 +14,7 @@ interface AuthState {
   ready: boolean;
   user: AuthUser | null;
   login: () => void;
+  register: () => void;
   logout: () => void;
   hasRole: (...roles: string[]) => boolean;
 }
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ready,
     user,
     login: () => getKeycloak().login(),
+    register: () => getKeycloak().register(),
     logout: () => { queryClient.clear(); void getKeycloak().logout({ redirectUri: window.location.origin }); },
     hasRole: (...roles) => !!user && roles.some((r) => user.roles.includes(r)),
   };

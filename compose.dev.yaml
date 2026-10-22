@@ -80,6 +80,11 @@ services:
     depends_on:
       keycloak-db:
         condition: service_healthy
+  # Catches local Keycloak emails (verify email, reset password); read them at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports:
+      - '127.0.0.1:8025:8025'
   web:
     build:
       context: ./frontend

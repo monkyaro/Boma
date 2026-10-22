@@ -120,6 +120,27 @@ services:
       resources:
         limits: { cpus: "0.25", memory: 256m }
 
+  # Keycloak account emails (verify email, reset password) go to this relay over plain SMTP on the
+  # internal network; it sends with the SES API using the instance role (no SMTP keys).
+  mail-relay:
+    <<: *defaults
+    image: ${REGISTRY}/boma/api:${API_TAG:?API_TAG not set}
+    command: ["python", "/relay/ses_relay.py"]
+    environment:
+      AWS_REGION: eu-west-1
+      RELAY_FROM_DOMAIN: bomahoop.com
+    volumes:
+      - ./mail-relay/ses_relay.py:/relay/ses_relay.py:ro
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 2525), 3).close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits: { cpus: "0.25", memory: 128m }
+
   keycloak:
     <<: *defaults
     image: quay.io/keycloak/keycloak:26.4
