@@ -10,6 +10,7 @@ BOMA Real Estate Marketplace (Tanzania), as a monorepo:
 | `keycloak-theme/` | Keycloakify login theme `boma` | [keycloak-theme/README.md](keycloak-theme/README.md) |
 
 CI lives in `.github/workflows/`: one workflow per app, triggered only by changes in its folder.
+Coding agents (Codex, Claude Code): see [AGENTS.md](AGENTS.md).
 
 ## Infrastructure
 
