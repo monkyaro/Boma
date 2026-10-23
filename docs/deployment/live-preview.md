@@ -76,3 +76,9 @@ Incremental spend remains within the approved low-usage allowance: three secrets
 - API and web: `boma/api:beb45bce8565`, `boma/web:beb45bce8565` (commit `beb45bc`), host-built, Trivy gate passed for both. No migrations. Previous: `0977dd918755` for both.
 - Staff endpoints are deployed but fail closed (503) until configured: the `boma-admin-api` client does not exist yet because the Keycloak bootstrap admin password stored in `/boma/production/keycloak` is no longer valid (`invalid_grant`), so `keycloak-admin-api-client.sh` could not run. Pending owner action: create the client (script with a working master admin, or admin console), then add `KEYCLOAK_ADMIN_URL=http://keycloak:8080` and `KEYCLOAK_ADMIN_CLIENT_SECRET` to `/boma/production/api` and re-render `api.env`.
 - Rollback: `cp /opt/boma/current/.env.bak-before-beb45bce8565 /opt/boma/current/.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps api celery-worker celery-beat mail-relay web`.
+
+## Staff password-only sign-in for testing — 2026-10-23
+
+- API only: `boma/api:6feaf9a26347` (commit `6feaf9a`), host-built, Trivy gate passed. No migrations. Web unchanged (`beb45bce8565`). Previous API: `beb45bce8565`.
+- Added `STAFF_MFA_REQUIRED=false` to `/boma/production/api` and the rendered `api.env`. Invited staff now verify their email, set a password from the link and sign in without a one-time code; the API skips the staff MFA check. **Set it back to `true` before go-live.**
+- Rollback: `cp /opt/boma/current/.env.bak-before-6feaf9a26347 /opt/boma/current/.env && cp /opt/boma/current/api.env.bak-before-6feaf9a26347 /opt/boma/current/api.env && docker compose -f compose.yaml -f compose.preview.yaml up -d --no-deps api celery-worker celery-beat mail-relay`.
