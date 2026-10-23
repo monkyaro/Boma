@@ -154,3 +154,18 @@ def test_staff_creation_is_disabled_without_configuration(client, token_claims, 
     monkeypatch.setattr(staff_api, "keycloak_admin", lambda: None)
     actor(token_claims, "national-admin", "national_admin")
     assert client.get("/staff", headers=HEADERS).status_code == 503
+
+
+def test_mfa_switch_controls_invitation_steps(app, monkeypatch):
+    from app.staff.keycloak_admin import setup_actions
+    with app.app_context():
+        assert "CONFIGURE_TOTP" in setup_actions()
+        monkeypatch.setitem(app.config, "STAFF_MFA_REQUIRED", False)
+        assert setup_actions() == ["VERIFY_EMAIL", "UPDATE_PASSWORD"]
+
+
+def test_password_only_staff_allowed_when_mfa_not_required(client, token_claims, keycloak, app, monkeypatch):
+    actor(token_claims, "national-admin", "national_admin", mfa=False)
+    assert client.get("/staff", headers=HEADERS).status_code == 403
+    monkeypatch.setitem(app.config, "STAFF_MFA_REQUIRED", False)
+    assert client.get("/staff", headers=HEADERS).status_code == 200

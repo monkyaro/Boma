@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import g
+from flask import current_app, g
 from flask_restx import abort
 from app.extensions import db, flask_keycloak
 from .workspace_model import AuditEvent, Notification, OfficerAssignment, Ward, District
@@ -12,6 +12,8 @@ def roles():
 
 
 def has_mfa():
+    if not current_app.config.get("STAFF_MFA_REQUIRED", True):
+        return True
     methods = set(g.token.get("amr", []))
     return "mfa" in methods or {"pwd", "otp"}.issubset(methods)
 

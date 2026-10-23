@@ -34,6 +34,9 @@ KEYCLOAK_ADMIN_CLIENT_SECRET = os.environ.get("KEYCLOAK_ADMIN_CLIENT_SECRET")
 # Where the invitation email's setup link returns new staff after they finish
 STAFF_SETUP_CLIENT_ID = os.environ.get("STAFF_SETUP_CLIENT_ID", "boma-web")
 STAFF_SETUP_REDIRECT_URL = os.environ.get("STAFF_SETUP_REDIRECT_URL", "https://bomahoop.com/dashboard")
+# Staff must sign in with password + one-time code. Set "false" only on test environments:
+# invitations then ask for email verification and a password, and the API skips the MFA check.
+STAFF_MFA_REQUIRED = os.environ.get("STAFF_MFA_REQUIRED", "true").lower() != "false"
 
 # Comma-separated list, e.g. "https://bomahoop.com,https://www.bomahoop.com"
 CORS_ORIGINS = [

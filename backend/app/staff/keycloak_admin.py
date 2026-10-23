@@ -14,6 +14,13 @@ SETUP_LINK_LIFESPAN = 3 * 24 * 3600
 SETUP_ACTIONS = ["VERIFY_EMAIL", "UPDATE_PASSWORD", "CONFIGURE_TOTP"]
 
 
+def setup_actions():
+    """Invitation steps; the one-time-code step is dropped when STAFF_MFA_REQUIRED is off."""
+    if current_app.config.get("STAFF_MFA_REQUIRED", True):
+        return SETUP_ACTIONS
+    return [action for action in SETUP_ACTIONS if action != "CONFIGURE_TOTP"]
+
+
 class KeycloakAdminError(Exception):
     def __init__(self, message, status=None):
         super().__init__(message)
@@ -57,7 +64,7 @@ class KeycloakAdmin:
         """Returns the new user id; KeycloakAdminError status 409 when the email is taken."""
         response = self._request("POST", "/users", expected=(201,), json={
             "username": email, "email": email, "firstName": first_name, "lastName": last_name,
-            "enabled": True, "emailVerified": False, "requiredActions": SETUP_ACTIONS})
+            "enabled": True, "emailVerified": False, "requiredActions": setup_actions()})
         return response.headers["Location"].rstrip("/").rsplit("/", 1)[-1]
 
     def get_user(self, user_id):
@@ -84,7 +91,7 @@ class KeycloakAdmin:
     def send_setup_email(self, user_id, client_id, redirect_uri):
         self._request("PUT", f"/users/{quote(user_id, safe='')}/execute-actions-email",
                       params={"lifespan": SETUP_LINK_LIFESPAN, "client_id": client_id, "redirect_uri": redirect_uri},
-                      json=SETUP_ACTIONS)
+                      json=setup_actions())
 
 
 def keycloak_admin():
